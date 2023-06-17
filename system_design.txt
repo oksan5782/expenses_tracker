@@ -1,0 +1,48 @@
+Hadrware setup and Communication setup GOALS:
+(This phase contains the system design and the complete hardware and communication setup for developing product.)
+Major components
+- Front-end to display data to the user and let them interact with it
+- Back-end to connect user interface with the database
+- Database
+
+Architecture Design
+(System design is broken down further into modules taking up different functionalities)
+(choosing technology)
+- design doc is the place to write down the trade-offs you made in designing your software
+- offer more than one approach
+- define detailed communication model
+
+Main instruments:
+    *Front-end*
+Python GUI Framework
+    a. wxPython
+    b. Kivy 
+    c. PyQT  
+    d. Tkinter 
+
+Backend:
+All Python options:
+  https://www.youtube.com/watch?v=CPNdK7Zqd0U
+ 
+    
+example:  https://david-estevez.gitbooks.io/tutorial-pyside-pyqt4/content/07_backend.html
+
+Database (data storage)
+    Sqlite3 (worked with it and python already, lightweight)
+
+Server for the database:
+Option 1:
+    SQLite is a SQL database the reads and writes files directly to disk. (https://medium.com/analytics-vidhya/easiest-local-sql-server-a8e9b067c01b)
+    https://softwareengineering.stackexchange.com/questions/279713/does-using-a-database-server-make-sense-if-the-application-only-does-things-loca
+    https://www.quora.com/What-is-a-good-database-system-SQLite-Mongo-etc-for-someone-doing-a-pet-project-involving-data-mining-with-Python-with-no-prior-database-experience
+Option 2:
+    run along the the actual program on macOS devise (postgress as tried earlier)
+Option 3:
+    set up a remote one and connect to it
+https://stackoverflow.com/questions/16287559/mysql-adding-user-for-remote-access
+
+
+
+Implementation of Privacy, Security, Logging 
+Privacy - account with login form
+Logging - a separate log file file to store user activity
