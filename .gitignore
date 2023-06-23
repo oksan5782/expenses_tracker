@@ -1,0 +1,7 @@
+# virtual environments 
+venv/
+
+.DS_Store
+.env
+.o
+
