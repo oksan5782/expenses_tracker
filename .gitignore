@@ -1,6 +1,10 @@
 # virtual environments 
 venv/
 
+.pdf
+.pptx
+.png
+
 .DS_Store
 .env
 .o
