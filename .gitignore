@@ -1,9 +1,11 @@
 # virtual environments 
 venv/
+__pycache__/
 
 .pdf
 .pptx
 .png
+.pyc
 
 .DS_Store
 .env
