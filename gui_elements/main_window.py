@@ -28,7 +28,7 @@ class MainScreen(QWidget):
 
 
         # FUNCTIONAL AREA 1 in the top left of the grid box
-        greetingWithCalender = QWidget()
+        greeting_with_calender = QWidget()
 
         # First row
         title = QLabel("<h1>My Expenses</h1>")
@@ -37,63 +37,63 @@ class MainScreen(QWidget):
         greeting.setFont(QFont('Futura', 16))
 
         # Cet budget button 
-        changeLimitButtom = StyledPushButton("Change Monthly Budget", 200, "#FFB499", 16)
-        changeLimitButtom.clicked.connect(self.change_limit)
+        change_limit_button = StyledPushButton("Change Monthly Budget", 200, "#FFB499", 16)
+        change_limit_button.clicked.connect(self.change_limit)
 
         # Calender Button
-        calendarButton = StyledPushButton("Calendar", 150, "#ADD8E6", 18)
-        calendarButton.clicked.connect(self.open_calender)
+        calendar_button = StyledPushButton("Calendar", 150, "#ADD8E6", 18)
+        calendar_button.clicked.connect(self.open_calender)
 
         # Add widgets to the horizontal layout to make a button row
-        innerGreetingLayout = QHBoxLayout()
-        innerGreetingLayout.addWidget(greeting)
-        innerGreetingLayout.addWidget(changeLimitButtom)
-        innerGreetingLayout.addWidget(calendarButton)
+        inner_greeting_layout = QHBoxLayout()
+        inner_greeting_layout.addWidget(greeting)
+        inner_greeting_layout.addWidget(change_limit_button)
+        inner_greeting_layout.addWidget(calendar_button)
 
         # Set main layout of the area as vertical and add title and second row to it
-        vGreetingLayout = QVBoxLayout()
-        vGreetingLayout.addWidget(title)
-        vGreetingLayout.addLayout(innerGreetingLayout)
+        v_greeting_layout = QVBoxLayout()
+        v_greeting_layout.addWidget(title)
+        v_greeting_layout.addLayout(inner_greeting_layout)
 
-        greetingWithCalender.setLayout(vGreetingLayout)
+        greeting_with_calender.setLayout(v_greeting_layout)
 
 
 
         # FUNCTIONAL AREA 2 - user entry section
-        placeholderAddButtons = QWidget()
-        addIncomeExpenceLayout = QVBoxLayout()
+        placeholder_add_buttons = QWidget()
+        add_income_expence_layout = QVBoxLayout()
 
         # Add Income button
-        addIncomeButton = StyledPushButton("Add Income", 150, "#E6E6FA", 14)
-        addIncomeButton.clicked.connect(self.open_add_income)
+        add_income_button = StyledPushButton("Add Income", 150, "#E6E6FA", 14)
+        add_income_button.clicked.connect(self.open_add_income)
 
         # Add Expense Button
-        addExpenceButton = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
-        addExpenceButton.clicked.connect(self.open_add_expense)
+        add_expence_button = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
+        add_expence_button.clicked.connect(self.open_add_expense)
     
         # Upload Expense Button
-        uploadExpenceButton = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
-        uploadExpenceButton.clicked.connect(self.open_upload_expense)
+        upload_expence_button = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
+        upload_expence_button.clicked.connect(self.open_upload_expense)
 
         # Insert buttons to the layout
-        addIncomeExpenceLayout.addWidget(addIncomeButton)
-        addIncomeExpenceLayout.insertSpacing(1, 25)
-        addIncomeExpenceLayout.addWidget(addExpenceButton)
-        addIncomeExpenceLayout.addWidget(uploadExpenceButton)
+        add_income_expence_layout.addWidget(add_income_button)
+        add_income_expence_layout.insertSpacing(1, 25)
+        add_income_expence_layout.addWidget(add_expence_button)
+        add_income_expence_layout.addWidget(upload_expence_button)
 
-        placeholderAddButtons.setLayout(addIncomeExpenceLayout)
+        placeholder_add_buttons.setLayout(add_income_expence_layout)
 
 
 
         # FUNCTIONAL AREA 3 - Groups section
-        placeholderGroups = QWidget()
+        placeholder_groups = QWidget()
         groups_layout = QVBoxLayout()
         groups_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # Group title label
-        groupsLabel = QLabel("Groups:")
-        groupsLabel.setFont(QFont('Futura', 16))
-        groups_layout.addWidget(groupsLabel)
+        groups_label = QLabel("Groups:")
+        groups_label.setFont(QFont('Futura', 16))
+        groups_layout.addWidget(groups_label)
         groups_layout.insertSpacing(1, 10)
 
         # Create buttons to view available groups
@@ -117,31 +117,31 @@ class MainScreen(QWidget):
             groups_layout.addLayout(single_group_layout)
             
         # Add last button to create a new group
-        addNewGroupButton = StyledPushButton("New Group", 150, "#D7C3C1", 14)
-        addNewGroupButton.clicked.connect(self.add_new_group)
-        groups_layout.addWidget(addNewGroupButton, alignment=Qt.AlignmentFlag.AlignLeft)
+        add_new_group_button = StyledPushButton("New Group", 150, "#D7C3C1", 14)
+        add_new_group_button.clicked.connect(self.add_new_group)
+        groups_layout.addWidget(add_new_group_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        placeholderGroups.setLayout(groups_layout)
+        placeholder_groups.setLayout(groups_layout)
             
 
 
         # FUNCTIONAL AREA 4 - Categories section
-        placeholderCategories = QWidget()
-        categoriesGridLayout = QGridLayout()
+        placeholder_categories = QWidget()
+        categories_grid_layout = QGridLayout()
 
         # Add title to Categories section
         categories_title_layout = QHBoxLayout()
-        categoriesTitle = QLabel("Categories")
-        categoriesTitle.setFont(QFont('Futura', 18))
+        categories_title = QLabel("Categories")
+        categories_title.setFont(QFont('Futura', 18))
 
         # Button to view all categories
-        openAllCategoriesButton = StyledPushButton("All Categories", 150, "#DEB887", 16)
-        openAllCategoriesButton.clicked.connect(self.open_all_categories)
+        open_all_categories_button = StyledPushButton("All Categories", 150, "#DEB887", 16)
+        open_all_categories_button.clicked.connect(self.open_all_categories)
 
         # Add categories label andd button to the view
-        categories_title_layout.addWidget(categoriesTitle)
-        categories_title_layout.addWidget(openAllCategoriesButton)
-        categoriesGridLayout.addLayout(categories_title_layout, 0, 0, 1, 5)
+        categories_title_layout.addWidget(categories_title)
+        categories_title_layout.addWidget(open_all_categories_button)
+        categories_grid_layout.addLayout(categories_title_layout, 0, 0, 1, 5)
 
         # Create buttons with categories
         for i in range(len(CATEGORIES_LIST)):
@@ -160,15 +160,15 @@ class MainScreen(QWidget):
             # Add items to category box and align them
             single_category_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             single_category_layout.addWidget(category_item_button)
-            categoriesGridLayout.addLayout(single_category_layout, (i// 5) + 1, i % 5, 1, 1)
+            categories_grid_layout.addLayout(single_category_layout, (i// 5) + 1, i % 5, 1, 1)
 
-        placeholderCategories.setLayout(categoriesGridLayout)
+        placeholder_categories.setLayout(categories_grid_layout)
 
 
 
         # FUNCTIONAL AREA 5 - Bar chart and pie chart section
-        placeholderBarChart = QWidget()
-        placeholderBarChart.setStyleSheet('background-color: #F0F8FF')
+        placeholder_bar_chart = QWidget()
+        placeholder_bar_chart.setStyleSheet('background-color: #F0F8FF')
 
         charts_area_layout = QGridLayout()
 
@@ -180,15 +180,15 @@ class MainScreen(QWidget):
         current_month_donut_chart = DonutChart()
         charts_area_layout.addWidget(current_month_donut_chart, 0, 4, 1, 2)
 
-        placeholderBarChart.setLayout(charts_area_layout)
+        placeholder_bar_chart.setLayout(charts_area_layout)
 
         
         # Add 5 FUNCTIONAL AREAS to the layout
-        main_layout.addWidget(greetingWithCalender, 0, 0, 1, 4)
-        main_layout.addWidget(placeholderBarChart, 1, 0, 3, 4)
-        main_layout.addWidget(placeholderCategories, 4, 0, 2, 4)
-        main_layout.addWidget(placeholderAddButtons, 0, 4, 2, 2)
-        main_layout.addWidget(placeholderGroups, 2, 4, 4, 2)
+        main_layout.addWidget(greeting_with_calender, 0, 0, 1, 4)
+        main_layout.addWidget(placeholder_bar_chart, 1, 0, 3, 4)
+        main_layout.addWidget(placeholder_categories, 4, 0, 2, 4)
+        main_layout.addWidget(placeholder_add_buttons, 0, 4, 2, 2)
+        main_layout.addWidget(placeholder_groups, 2, 4, 4, 2)
 
         self.setLayout(main_layout)
 
