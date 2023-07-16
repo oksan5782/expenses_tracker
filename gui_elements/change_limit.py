@@ -2,10 +2,16 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout, QLineEdi
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
+# Import data insertion function
+import sys
+sys.path.append('../helpers')
+from helpers import set_new_limit
+
 
 class ChangeLimitWindow(QWidget):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()  
+        self.user_id = user_id
         self.setWindowTitle("Change Monthly Budget")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -33,12 +39,13 @@ class ChangeLimitWindow(QWidget):
 
     # Limit validation
     def set_new_limit_value(self, new_budget):
-        print("New limit value is " + str(new_budget))
         # VALIDATE INPUT
 
         # INSERT NEW BUDGET INTO USERS TABLE
+        set_new_limit(self.user_id, new_budget)
 
         # GO BACK TO MAIN WINDOW
+        self.close()
 
 
     

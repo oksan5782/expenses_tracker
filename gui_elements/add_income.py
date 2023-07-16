@@ -2,9 +2,16 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QFormLayout, QLineEdi
 from PyQt6.QtGui import QFont
 
 
+# Import data insertion function
+import sys
+sys.path.append('../helpers')
+from helpers import add_income_into_db
+
+
 class AddIncomeWindow(QWidget):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()  
+        self.user_id = user_id
         self.setWindowTitle("Add Income")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -43,8 +50,12 @@ class AddIncomeWindow(QWidget):
         print("Input value is " + str(amount_line_edit) + " " + str(date))
         # VALIDATE USER INPUT 
 
-        # INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
+        # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
+        add_income_into_db(self.user_id, date, amount_line_edit)
+
+        # IF VALIDATION PASSED Flush change message
 
         # GO BACK TO MAIN WINDOW
+        self.close()
 
         

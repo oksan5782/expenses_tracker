@@ -1,12 +1,23 @@
-from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QFormLayout, QLineEdit)
+from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton,
+                            QFormLayout, QLineEdit, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+
+# Import my widgets
+from gui_elements.main_window import MainScreen
+from gui_elements.register import RegisterWindow
+
+# Import data insertion function
+import sys
+sys.path.append('../helpers')
+from helpers import log_in_check
+
 
 
 class LogInWindow(QWidget):
     def __init__(self):
         super().__init__()  
-        self.setGeometry(300, 200, 300, 300)
+        self.setGeometry(550, 300, 300, 300)
         self.setWindowTitle("Login Form")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -43,15 +54,25 @@ class LogInWindow(QWidget):
 
 
     def log_in_user(self, username, password):
-        print("Log In " + username + " " + str(password))
-        # VALIDATE BOTH INPUT FIELDS
+        user_id = log_in_check(username, password)
 
-        # CONVERT PASSWORD TO HASH
+        if user_id > 0:
+            print("Молодець")
+            
+            # Create main window object 
+            main_window = MainScreen(1)
+            main_window.show()
+            self.close()
+        
+        # Negative user_id means error
+        else:
+            no_user_found_msg = QMessageBox.information(self, "Information", "No user found")
 
-        # LOOK FOR USERNAME IN THE USERS TABLE
-
-        # SELECT PASSWORD HASH AND CHECK IF IT MATCHES
 
     def register_user(self):
         print("Register")
+
         # TRANSFER USER TO A REGISTER WINDOW
+        self.register_window = RegisterWindow(self)
+        self.register_window.show()
+        self.hide()
