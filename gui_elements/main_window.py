@@ -19,6 +19,7 @@ from gui_elements.single_group_view import DisplayGroupList
 # Import data extaction functions
 import sys
 sys.path.append('../helpers')
+sys.path.append('..\helpers')
 import helpers 
 
 

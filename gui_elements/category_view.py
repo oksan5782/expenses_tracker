@@ -9,6 +9,7 @@ from PyQt6.QtGui import QFont
 # Import data insertion function
 import sys
 sys.path.append('../helpers')
+sys.path.append('..\helpers')
 from helpers import get_expenses_by_category, remove_record
 
 

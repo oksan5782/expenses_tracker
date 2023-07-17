@@ -10,6 +10,7 @@ from gui_elements.register import RegisterWindow
 # Import data insertion function
 import sys
 sys.path.append('../helpers')
+sys.path.append('..\helpers')
 from helpers import log_in_check
 
 
