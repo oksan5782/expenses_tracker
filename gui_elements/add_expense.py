@@ -6,7 +6,6 @@ from PyQt6.QtGui import QFont
 # Import data insertion function
 import sys
 sys.path.append('../helpers')
-sys.path.append('..\helpers')
 from helpers import add_expense_into_db
 
 class AddExpenseWindow(QWidget):
