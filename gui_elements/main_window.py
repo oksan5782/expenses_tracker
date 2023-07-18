@@ -473,7 +473,7 @@ class AutoShrinkButton(QPushButton):
 
         if text_width > button_width:
             font = self.font()
-            font_size = self.original_font_size
+            font_size = self.font().pointSize()
             while text_width > button_width and font_size > 10:
                 font_size -= 1
                 font.setPointSize(font_size)
