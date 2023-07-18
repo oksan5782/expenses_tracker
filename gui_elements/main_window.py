@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QBrush, QColor, QPainter
+from PyQt6.QtGui import QFont, QBrush, QColor, QPainter, QFontMetrics
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, 
                             QHBoxLayout, QVBoxLayout, QFormLayout, QMainWindow, 
                             QFileDialog, QMessageBox, QTableWidget, QTableWidgetItem)
@@ -51,7 +51,7 @@ class MainScreen(QWidget):
         greeting.setFont(QFont('Futura', 16))
 
         # Cet budget button 
-        change_limit_button = StyledPushButton("Change Monthly Budget", 200, "#FFB499", 16)
+        change_limit_button = AutoShrinkButton("Change Monthly Budget", 220, "#FFB499")
         change_limit_button.clicked.connect(self.change_limit)
 
         self.limit_window = ChangeLimitWindow(self.user_id)
@@ -122,9 +122,9 @@ class MainScreen(QWidget):
             single_group_layout = QHBoxLayout()
 
             # Button with title
-            button_group_name = QPushButton(GROUP_LIST[i][0])
+            button_group_name = AutoShrinkButton(GROUP_LIST[i][0], 200, "#D8BFD8")
             button_group_name.clicked.connect(lambda x, i=i : self.group_button_press(GROUP_LIST[i][0]))
-            button_group_name.setStyleSheet('background-color : #D8BFD8; font-weight: 600; border-radius : 5; padding: 5 0')
+            # button_group_name.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 14px; border-radius : 5; padding: 5 0')
 
             # Label with amount spent
             label_group_amount = QLabel(str(GROUP_LIST[i][1]))
@@ -324,7 +324,7 @@ class MainScreen(QWidget):
 
             # QLine edits to enter input
             button_name = "View " + name
-            view_single_category_button = StyledPushButton(button_name, 180, "#8FBC8F", 16)
+            view_single_category_button = AutoShrinkButton(button_name, 180, "#8FBC8F")
             view_single_category_button.clicked.connect(lambda x, name=name : self.category_button_press(name))
 
             # Insert labels and line edits into layout
@@ -440,5 +440,48 @@ class StyledPushButton(QPushButton):
         self.setFixedWidth(width)
         self.setStyleSheet(f"background-color: {color}; border: none; border-radius: 5; padding: 5 0" )
         self.setFont(QFont("Futura", font_size))
+
+
+
+
+# Buttons that reduce font size if the title does not fit
+class AutoShrinkButton(QPushButton):
+    DEFAULT_FONT_SIZE = 15
+
+    def __init__(self, text, width, color):
+        super().__init__(text)
+        self.original_font = self.font()
+        self.setFontSize(self.DEFAULT_FONT_SIZE)
+        self.setFixedWidth(width)
+        self.setStyleSheet(f"background-color: {color}; font-weight: 550; border: none; border-radius: 5; padding: 5 0" )
+        self.update_font_size()
+
+    def setFontSize(self, size):
+        font = QFont(self.original_font)
+        font.setPointSize(size)
+        self.setFont(font)
+        self.updateGeometry()
+
+    def resizeEvent(self, event):
+        self.update_font_size()
+        super().resizeEvent(event)
+
+    def update_font_size(self):
+        metrics = QFontMetrics(self.font())
+        text_width = metrics.horizontalAdvance(self.text())
+        button_width = self.width()
+
+        if text_width > button_width:
+            font = self.font()
+            font_size = self.original_font_size
+            while text_width > button_width and font_size > 10:
+                font_size -= 1
+                font.setPointSize(font_size)
+                metrics = QFontMetrics(font)
+                text_width = metrics.horizontalAdvance(self.text())
+
+            self.setFont(font)
+
+
         
 

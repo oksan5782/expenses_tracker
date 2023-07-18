@@ -106,3 +106,5 @@ class DisplayCategoryList(QMainWindow):
         # Close category view window
         self.close()
 
+
+
