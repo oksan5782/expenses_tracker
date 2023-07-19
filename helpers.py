@@ -80,6 +80,33 @@ def remove_record(user_id, category, name, date, amount):
     print(str(user_id) + " " + category + " " + name + " " + date + " " + str(amount))
 
 
+
+def remove_record_from_the_group(user_id, group_name, expense_name, category, date, amount):
+    # Update record in users table and set group to None
+    print(user_id)
+    print(group_name)
+    print(expense_name)
+    print(date)
+    print(amount)
+
+
+# Update record data to new values after searching fir it by previous values
+def edit_record(user_id, record_before_editing_list, record_after_editing_list):
+    # Parse values fron lists
+    prev_name = record_before_editing_list[0]
+    prev_category = record_before_editing_list[1]
+    prev_date = record_before_editing_list[2]
+    prev_amount = record_before_editing_list[3]
+
+    new_name = record_after_editing_list[0]
+    new_category = record_after_editing_list[1]
+    new_date = record_after_editing_list[2]
+    new_amount = record_after_editing_list[3]
+    print(record_before_editing_list)
+    print(record_after_editing_list)
+    # COMPLETE THE REST
+
+
 # Select date by user_id and group
 def get_group_expenses(user_id, group_name):
     print("Getting group data")
