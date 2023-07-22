@@ -3,6 +3,28 @@
 
 # import pandas as pd
 
+#setup sqlite3
+import sqlite3
+sqliteConnection = sqlite3.connect('database.db')
+
+try:
+    cursor = sqliteConnection.cursor()
+    print("Database created and Successfully Connected to SQLite")
+
+    sqlite_select_Query = "select sqlite_version();"
+    cursor.execute(sqlite_select_Query)
+    record = cursor.fetchall()
+    print("SQLite Database Version is: ", record)
+    cursor.close()
+
+except sqlite3.Error as error:
+    print("Error while connecting to sqlite", error)
+
+finally:
+    if sqliteConnection:
+        sqliteConnection.close()
+        print("The SQLite connection is closed")
+
 # Upload expense TO DO LATER EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
     # EXTRACT ONLY THE FILENAME AND PASS IT TO PANDAS
 
