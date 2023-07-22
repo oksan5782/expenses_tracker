@@ -17,7 +17,6 @@ class DisplayCategoryList(QMainWindow):
         super().__init__()
         self.category_title = name
         self.user_id = user_id
-        self.new_expense_window = new_expense_window(self.user_id)
         self.setWindowTitle(f"Category {self.category_title}")
         self.setStyleSheet('background-color: #F5FFFA')
         self.create_table()

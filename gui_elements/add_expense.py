@@ -9,9 +9,10 @@ sys.path.append('../helpers')
 from helpers import add_expense_into_db
 
 class AddExpenseWindow(QWidget):
-    def __init__(self, user_id):
+    def __init__(self, user_id, categories_list):
         super().__init__()  
         self.user_id = user_id
+        self.categories_list = categories_list
         self.setWindowTitle("Add Expense")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -45,7 +46,7 @@ class AddExpenseWindow(QWidget):
         # QLine edit to enter input
         self.category = QComboBox()
         # ADD MORE CATEGORIES
-        self.category.addItems(["Rent", "Groceries", "Eating Out"])
+        self.category.addItems(self.categories_list)
         # STYLE COMBOBOX
         self.category.setFixedHeight(25)
         self.category.setStyleSheet("QComboBox QAbstractItemView {"

@@ -1,5 +1,7 @@
 
-# FUNCTIONS FOR MAIN WINDOW WIDGET
+""" FUNCTIONS FOR MAIN WINDOW WIDGET """
+
+# import pandas as pd
 
 #setup sqlite3
 import sqlite3
@@ -52,6 +54,16 @@ def get_this_month_expenses(user_id):
     return this_month_expenses
 
 
+def create_group(group_name, list_of_group_records):
+    print("Creating this group")
+    print(group_name)
+    print(list_of_group_records)
+    
+    # Create a new group with a title "group_name" (Check if this name already exists)
+    # Get its index
+    # Set this index in the group column for records table in a for loop
+    # Return number as an error/no error code
+
 def get_groups_list(user_id):
     # GROUP list contains a tuple with group title [0] and amout spent [1]
     group_list = [('Hawaii 22-23', 2000), ('Japan May 23', 2050), ('Japan Sep 23', 1500), ('Medical', 500), ('Dental', 100)]
@@ -95,6 +107,16 @@ def get_expenses_by_category(user_id, name):
     # Placeholder
     extracted_test_data = [("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22), ("GNU", "15/11/2022", 76.00), ("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22), ("GNU", "15/11/2022", 76.00), ("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22), ("GNU", "15/11/2022", 76.00), ("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22), ("GNU", "15/11/2022", 76.00)]
     return extracted_test_data
+
+
+# Select data by user_id and date_range 
+def get_expenses_by_date_range(user_id, start_date, end_date):
+    # date_list = pd.date_range(start=start_date, end=end_date)
+    
+    # Run SELECT category by datarange
+    # PLACEHOLDER
+    data_by_date = [("ABC", "Eating Out", "02/03/2023", 20.25), ("BCD", "Eating Out", "04/08/2018", 15.22), ("GNU", "Eating Out", "15/11/2022", 76.00)]
+    return data_by_date
 
 
 def remove_record(user_id, category, name, date, amount):

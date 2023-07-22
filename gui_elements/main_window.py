@@ -15,6 +15,8 @@ from gui_elements.add_expense import AddExpenseWindow
 from gui_elements.add_income import AddIncomeWindow
 from gui_elements.category_view import DisplayCategoryList
 from gui_elements.single_group_view import DisplayGroupList
+from gui_elements.add_new_group import AddGroupWindow
+
 
 # Import data extaction functions
 import sys
@@ -87,7 +89,7 @@ class MainScreen(QWidget):
         # Add Expense Button
         add_expence_button = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
         add_expence_button.clicked.connect(self.open_add_expense)
-        self.add_expense_window = AddExpenseWindow(self.user_id)
+        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST)
     
         # Upload Expense Button
         upload_expence_button = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
@@ -286,6 +288,9 @@ class MainScreen(QWidget):
     # Should open a list of all transactions and allow user to put checkmark near some to add them to group
     def add_new_group(self):
         print("Add New Group Button pressed")
+        self.adding_new_group = AddGroupWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST)
+        self.adding_new_group.show()
+        
 
 
     # FUNCTION AREA 4 methods
@@ -417,9 +422,9 @@ class DonutChart(QMainWindow):
 
         # Create donut slices with data
         self.slice1 = self.series.append("Spent", THIS_MONTH_EXPENSES)
-        self.slice1.setBrush(QBrush(QColor(252, 188, 181, 200)))
+        self.slice1.setBrush(QBrush(QColor("#FCBCB5")))
         self.slice2 = self.series.append(str(THIS_MONTH_EXPENSES), MONTHLY_LIMIT - THIS_MONTH_EXPENSES)
-        self.slice2.setBrush(QBrush(QColor(240, 248, 255, 200)))
+        self.slice2.setBrush(QBrush(QColor("#F0F8FF")))
 
         # Upload series to the chart 
         self.chart = QChart()
