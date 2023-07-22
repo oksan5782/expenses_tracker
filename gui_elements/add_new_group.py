@@ -201,7 +201,7 @@ class AddGroupWindow(QMainWindow):
                     self.table.setItem(i, 3, QTableWidgetItem(str(amount)))
 
                     # Checkbox to include a record into a group
-                    checkbox = QCheckBox("Edit", self)
+                    checkbox = QCheckBox("Add", self)
                     checkbox.setStyleSheet("background-color: #F9EBD1; border: none; border-radius: 5; padding: 5 0" )
                     self.table.setCellWidget(i, 4, checkbox)
 
