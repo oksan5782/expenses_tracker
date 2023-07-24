@@ -16,6 +16,7 @@ from gui_elements.add_income import AddIncomeWindow
 from gui_elements.category_view import DisplayCategoryList
 from gui_elements.single_group_view import DisplayGroupList
 from gui_elements.add_new_group import AddGroupWindow
+from gui_elements.calendar_view import CalendarView
 
 
 # Import data extaction functions
@@ -57,6 +58,7 @@ class MainScreen(QWidget):
         change_limit_button.clicked.connect(self.change_limit)
 
         self.limit_window = ChangeLimitWindow(self.user_id)
+        self.calendar_window = CalendarView(self.user_id)
 
         # Calender Button
         calendar_button = StyledPushButton("Calendar", 150, "#ADD8E6", 18)
@@ -224,6 +226,7 @@ class MainScreen(QWidget):
     # Open a window with calender view 
     def open_calender(self):
         print("Calender clicked")
+        self.calendar_window.show()
 
     # change monthly budget (limit)
     def change_limit(self):

@@ -1,6 +1,7 @@
 
 """ FUNCTIONS FOR MAIN WINDOW WIDGET """
 
+from datetime import datetime, timedelta 
 # import pandas as pd
 
 #setup sqlite3
@@ -24,6 +25,23 @@ finally:
     if sqliteConnection:
         sqliteConnection.close()
         print("The SQLite connection is closed")
+
+
+
+# DATETIME ONLY FUNCTIONS 
+def get_last_day_of_current_month():
+    # Get the current date
+    current_date = datetime.now()
+
+    # Get the first day of the next month
+    first_day_of_next_month = datetime(current_date.year, current_date.month % 12 + 1, 1)
+
+    # Subtract one day from the first day of the next month to get the last day of the current month
+    last_day_of_current_month = first_day_of_next_month - timedelta(days=1)
+
+    return last_day_of_current_month
+
+
 
 # Upload expense TO DO LATER EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
     # EXTRACT ONLY THE FILENAME AND PASS IT TO PANDAS
@@ -54,6 +72,36 @@ def get_this_month_expenses(user_id):
     return this_month_expenses
 
 
+"""Functions for calendar block """
+
+# Extracting the sum of expenses for a given date
+def get_sum_expenses_by_date(user_id, date):
+    # cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE date = ? and user = ?", (date, user)))
+    # sum_expenses = cursor.fetchone()[0]
+
+    # PLACEHOLDER
+    sum_expenses = 0
+    if user_id == 1:
+        sum_expenses = 200
+    return sum_expenses
+
+# Extracting all expense records by date
+def get_list_expenses_by_date(user_id, date):
+
+    # PLACEHOLDER
+    extracted_test_data = [("ABC", "Eating Out", 20.25), ("BCD", "Laundry", 15.22), ("GNU", "Groceries", 76.00), ("ABC", "Laundry", 20.25), ("BCD", "Laundry", 15.22), ("GNU", "Rent", 76.00)]
+    return extracted_test_data
+
+def get_last_start_date_of_oldest_record(user_id):
+
+    # Select top oldest date record in the table by user_id (limit 1)
+    # MIGHT NEED TO FIX DATE FORMATS TO QDATE IN gui_elements/calendar_view.py
+
+    # PLACEHOLDER
+    return (2022, 7, 11)
+
+""" FUNCTIONS for groups area """
+
 def create_group(group_name, list_of_group_records):
     print("Creating this group")
     print(group_name)
@@ -68,6 +116,7 @@ def get_groups_list(user_id):
     # GROUP list contains a tuple with group title [0] and amout spent [1]
     group_list = [('Hawaii 22-23', 2000), ('Japan May 23', 2050), ('Japan Sep 23', 1500), ('Medical', 500), ('Dental', 100)]
     return group_list
+
 
 
 
