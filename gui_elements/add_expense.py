@@ -9,9 +9,10 @@ sys.path.append('../helpers')
 from helpers import add_expense_into_db
 
 class AddExpenseWindow(QWidget):
-    def __init__(self, user_id, categories_list):
+    def __init__(self, user_id, categories_list, types_list):
         super().__init__()  
         self.user_id = user_id
+        self.types_list = types_list
         self.categories_list = categories_list
         self.setWindowTitle("Add Expense")
         self.setStyleSheet('background-color: #F5FFFA')
@@ -38,12 +39,27 @@ class AddExpenseWindow(QWidget):
 
         layout.addRow(label_date, self.date_line_edit)
 
-        # Row 3 - Category
+        # Row 3 - Type 
+        label_type = QLabel("Expense Type:")
+        label_type.setFont(QFont('Futura', 16))
+
+        # Selection box to enter input
+        self.type = QComboBox()
+        # ADD MORE CATEGORIES
+        self.type.addItems(self.types_list)
+        # STYLE COMBOBOX
+        self.type.setFixedHeight(25)
+        self.type.setStyleSheet("QComboBox QAbstractItemView {"
+                       "selection-color: #2E8B57"
+                       "}")
+        layout.addRow(label_type, self.type)
+
+
+        # Row 4 - Category
         label_category = QLabel("Expense Category:")
         label_category.setFont(QFont('Futura', 16))
         
-
-        # QLine edit to enter input
+        # Selection box to enter input
         self.category = QComboBox()
         # ADD MORE CATEGORIES
         self.category.addItems(self.categories_list)
@@ -52,10 +68,9 @@ class AddExpenseWindow(QWidget):
         self.category.setStyleSheet("QComboBox QAbstractItemView {"
                        "selection-color: #2E8B57"
                        "}")
-
         layout.addRow(label_category, self.category)
 
-        # Row 3 - Amount
+        # Row 5 - Amount
         label_amount = QLabel("Expense Amount:")
         label_amount.setFont(QFont('Futura', 16))
 
@@ -67,17 +82,17 @@ class AddExpenseWindow(QWidget):
 
         # Upload input button
         add_expense_button = QPushButton("Add")
-        add_expense_button.clicked.connect(lambda : self.add_expense(self.name_line_edit.text(), self.amount_line_edit.text(), self.date_line_edit.text(), self.category.currentText()))
+        add_expense_button.clicked.connect(lambda : self.add_expense(self.name_line_edit.text(), self.amount_line_edit.text(), self.date_line_edit.text(), self.category.currentText(), self.type.currentText()))
         add_expense_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addRow(add_expense_button)
         self.setLayout(layout)
 
 
-    def add_expense(self, name, amount_line_edit, date, category):
+    def add_expense(self, name, amount_line_edit, date, category, type):
         # VALIDATE USER INPUT 
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
-        add_expense_into_db(self.user_id, name, date, category, amount_line_edit)
+        add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
         # IF VALIDATION PASSED Flush the message 
 
         # GO BACK TO MAIN WINDOW

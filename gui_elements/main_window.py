@@ -10,6 +10,7 @@ from PyQt6.QtCharts import (QBarCategoryAxis, QStackedBarSeries, QBarSet, QChart
 import datetime
 
 # GUI elements
+
 from gui_elements.change_limit import ChangeLimitWindow
 from gui_elements.add_expense import AddExpenseWindow
 from gui_elements.add_income import AddIncomeWindow
@@ -27,7 +28,8 @@ import helpers
 
 #  Categories list for all categories view
 ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Utilities", "Grocery", "Eating Out", "Online Shopping", "Sport", "Charity", "Other"]
-
+# Expense types
+ALL_EXPENSE_TYPES = ["Credit", "Cash", "Foreign Currency"]
 
 class MainScreen(QWidget):
     def __init__(self, user_id):
@@ -91,7 +93,7 @@ class MainScreen(QWidget):
         # Add Expense Button
         add_expence_button = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
         add_expence_button.clicked.connect(self.open_add_expense)
-        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST)
+        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES)
     
         # Upload Expense Button
         upload_expence_button = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
