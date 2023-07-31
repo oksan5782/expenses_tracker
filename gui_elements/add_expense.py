@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QComboBox, 
-                             QFormLayout, QLineEdit)
+                             QFormLayout, QLineEdit, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -30,7 +30,7 @@ class AddExpenseWindow(QWidget):
         layout.addRow(label_name, self.name_line_edit)
 
         # Row 2 - Date 
-        label_date = QLabel("Expense Date:")
+        label_date = QLabel("Expense Date. Format YYYY-MM-DD")
         label_date.setFont(QFont('Futura', 16))
 
         # QLine edit to enter input
@@ -92,8 +92,25 @@ class AddExpenseWindow(QWidget):
         # VALIDATE USER INPUT 
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
-        add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
-        # IF VALIDATION PASSED Flush the message 
+        sql_return_value = add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
 
-        # GO BACK TO MAIN WINDOW
-        self.close()
+        # Error message for invalid date
+        if sql_return_value == 1:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
+
+        # Error message for invalid name input
+        if sql_return_value == 2:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Missing name")
+
+        # Error message for invalid amount input 
+        if sql_return_value == 3:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
+
+
+        # IF VALIDATION PASSED Flush the message 
+        elif sql_return_value == 0:
+            success_msg = QMessageBox.information(self, "Information", "Expense added")
+            
+            # GO BACK TO MAIN WINDOW
+            self.close()
+

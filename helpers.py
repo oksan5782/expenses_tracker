@@ -20,6 +20,24 @@ def get_last_day_of_current_month():
     return last_day_of_current_month
 
 
+def is_valid_datetime_format(datetime_str):
+    try:
+        # Try to parse the input date string
+        datetime.strptime(datetime_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+    
+def is_valid_numeral(number):
+    try:
+        numeric_result = float(number)
+        if numeric_result > 0:
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
+
 
 #setup sqlite3
 import sqlite3
@@ -109,13 +127,23 @@ EXTRACTED_TEST_DATA = [("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22
 
 # Add Expense after Add Expense button press
 def add_expense_into_db(user_id, type, name, date, category, amount):
+
+    # Validate date format
+    if not is_valid_datetime_format(date):
+        return 1
+    # Check if name is not missing
+    if name == "":
+        return 2
+    # check if amount is aa positive numeric value
+    if not is_valid_numeral(amount):
+        return 3
     try:
         cursor = sqliteConnection.cursor()
         print("Database created and Successfully Connected to SQLite")
         values = { 'transaction_type' : type,
                    'category' : category,
                    'date' : date,
-                   'amount' : amount,
+                   'amount' : float(amount),
                    'recurring' : False,
                    'group_id' : None, 
                    'user_id' : user_id}
@@ -126,12 +154,15 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return 0
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
         if sqliteConnection:
             sqliteConnection.close()
             print("The SQLite connection is closed")
+
 
 
         
