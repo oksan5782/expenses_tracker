@@ -88,12 +88,13 @@ class MainScreen(QWidget):
         # Add Income button
         add_income_button = StyledPushButton("Add Income", 150, "#E6E6FA", 14)
         add_income_button.clicked.connect(self.open_add_income)
-        self.add_income_window = AddIncomeWindow(self.user_id)
+        # self.add_income_window = AddIncomeWindow(self.user_id)
+        self.add_income_window = None
 
         # Add Expense Button
         add_expence_button = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
         add_expence_button.clicked.connect(self.open_add_expense)
-        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES)
+        self.add_expense_window = None
     
         # Upload Expense Button
         upload_expence_button = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
@@ -239,19 +240,15 @@ class MainScreen(QWidget):
 
     # Open a window with add income view
     def open_add_income(self):
-        print("Add Income Button clicked")
-        if self.add_income_window.isVisible():
-            self.add_income_window.close()
-        else:
-            self.add_income_window.show()
+        self.add_income_window = AddIncomeWindow(self.user_id)
+        self.add_income_window.show()
+
 
     # Open a window with add expense view
     def open_add_expense(self):
-        print("Add Expense Button clicked")
-        if self.add_expense_window.isVisible():
-            self.add_expense_window.close()
-        else:
-            self.add_expense_window.show()
+        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES)
+        self.add_expense_window.show()
+
 
     # Open a window with upload file view
     def open_upload_expense(self):

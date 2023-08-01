@@ -20,6 +20,18 @@ def get_last_day_of_current_month():
     return last_day_of_current_month
 
 
+# Convert SQL string of date into datetimr object
+def convert_to_date_time(date_string):
+    try:
+        # Use datetime.strptime to parse the date_string into a datetime object
+        datetime_object = datetime.strptime(date_string, '%Y-%m-%d')
+        return datetime_object
+    except ValueError:
+        # If the date_string is not in the correct format, handle the exception
+        return None
+
+
+# Check if date value is valid
 def is_valid_datetime_format(datetime_str):
     try:
         # Try to parse the input date string
@@ -27,7 +39,9 @@ def is_valid_datetime_format(datetime_str):
         return True
     except ValueError:
         return False
-    
+
+
+ # Check if expense/income amount is valid
 def is_valid_numeral(number):
     try:
         numeric_result = float(number)
@@ -39,13 +53,16 @@ def is_valid_numeral(number):
         return False
 
 
-#setup sqlite3
+# Setup sqlite3
 import sqlite3
-sqliteConnection = sqlite3.connect('database.db')
+# sqliteConnection = sqlite3.connect('database.db')
 
 
     # Upload expense TO DO LATER EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
         # EXTRACT ONLY THE FILENAME AND PASS IT TO PANDAS
+
+
+    # CHECK IF the all recurring transactions were placed this month
 
 
 # Get Recent Expenses for Stacked bar chart
@@ -82,6 +99,7 @@ def get_sum_expenses_by_date(user_id, date):
     if user_id == 1:
         sum_expenses = 200
     return sum_expenses
+
 
 # Extracting all expense records by date
 def get_list_expenses_by_date(user_id, date):
@@ -127,7 +145,7 @@ EXTRACTED_TEST_DATA = [("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22
 
 # Add Expense after Add Expense button press
 def add_expense_into_db(user_id, type, name, date, category, amount):
-
+    sqliteConnection = sqlite3.connect('database.db')
     # Validate date format
     if not is_valid_datetime_format(date):
         return 1
@@ -161,15 +179,41 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
     finally:
         if sqliteConnection:
             sqliteConnection.close()
-            print("The SQLite connection is closed")
 
 
 
         
 # Add income after Add Income button press
 def add_income_into_db(user_id, date, amount):
-    print("Added income into the database")
-    print("Input value is " + str(user_id) + " " + str(date) + " " + str(amount))
+    print("Adding income into the database")
+    sqliteConnection = sqlite3.connect('database.db')
+
+    # Validate date format
+    if not is_valid_datetime_format(date):
+        return 1
+    # check if amount is aa positive numeric value
+    if not is_valid_numeral(amount):
+        return 3
+    try:
+        cursor = sqliteConnection.cursor()
+        print("Database created and Successfully Connected to SQLite")
+        values = { 'date' : date,
+                   'amount' : float(amount),
+                   'user_id' : user_id}
+        query = """INSERT INTO income
+                (date, amount, user_id)
+                VALUES (:date, :amount, :user_id)"""
+        cursor.execute(query, values)
+        sqliteConnection.commit()
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return 0
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 
 # Update monthly limit in users table

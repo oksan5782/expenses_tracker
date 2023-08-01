@@ -30,7 +30,7 @@ class AddExpenseWindow(QWidget):
         layout.addRow(label_name, self.name_line_edit)
 
         # Row 2 - Date 
-        label_date = QLabel("Expense Date. Format YYYY-MM-DD")
+        label_date = QLabel("Expense Date (YYYY-MM-DD)")
         label_date.setFont(QFont('Futura', 16))
 
         # QLine edit to enter input
@@ -108,7 +108,7 @@ class AddExpenseWindow(QWidget):
 
 
         # IF VALIDATION PASSED Flush the message 
-        elif sql_return_value == 0:
+        if sql_return_value == 0:
             success_msg = QMessageBox.information(self, "Information", "Expense added")
             
             # GO BACK TO MAIN WINDOW

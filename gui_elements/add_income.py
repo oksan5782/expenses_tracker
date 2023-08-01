@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QFormLayout, QLineEdit)
+from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QFormLayout, 
+                            QMessageBox, QLineEdit)
 from PyQt6.QtGui import QFont
 
 
@@ -18,7 +19,7 @@ class AddIncomeWindow(QWidget):
         layout = QFormLayout()
 
         # ROW 1 - date
-        label_date = QLabel("Income Date:")
+        label_date = QLabel("Income Date (YYYY-MM-DD):")
         label_date.setFont(QFont('Futura', 16))
 
         # QLine edit to enter input
@@ -51,11 +52,20 @@ class AddIncomeWindow(QWidget):
         # VALIDATE USER INPUT 
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
-        add_income_into_db(self.user_id, date, amount_line_edit)
+        sql_return_value = add_income_into_db(self.user_id, date, amount_line_edit)
+
+        # Error message for invalid date
+        if sql_return_value == 1:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
+
+        # Error message for invalid amount input 
+        if sql_return_value == 3:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
 
         # IF VALIDATION PASSED Flush change message
-
-        # GO BACK TO MAIN WINDOW
-        self.close()
-
+        if sql_return_value == 0:
+            success_msg = QMessageBox.information(self, "Information", "Income value added")
+            
+            # GO BACK TO MAIN WINDOW
+            self.close()
         
