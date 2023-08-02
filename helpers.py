@@ -1,7 +1,7 @@
 
 """ FUNCTIONS FOR MAIN WINDOW WIDGET """
 
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta
 import pandas as pd
 
 
@@ -55,7 +55,6 @@ def is_valid_numeral(number):
 
 # Setup sqlite3
 import sqlite3
-# sqliteConnection = sqlite3.connect('database.db')
 
 
     # Upload expense TO DO LATER EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
@@ -92,6 +91,27 @@ def get_this_month_expenses(user_id):
 # Extracting the sum of expenses for a given date
 
 def get_sum_expenses_by_date(user_id, date):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    # No need to validate date sinse its taken from Calendar widget
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {
+                   'date' : date,
+                   'user_id' : user_id}
+        query = """SELECT SUM(amount) FROM expense WHERE user_id = :user_id AND date = :date"""
+        cursor.execute(query, values)
+        result = cursor.fetchone()[0]
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return result
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
     # cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE date = ? and user = ?", (date, user)))
     # sum_expenses = cursor.fetchone()[0]
     # PLACEHOLDER
@@ -103,16 +123,53 @@ def get_sum_expenses_by_date(user_id, date):
 
 # Extracting all expense records by date
 def get_list_expenses_by_date(user_id, date):
-    # PLACEHOLDER
-    extracted_test_data = [("ABC", "Eating Out", 20.25), ("BCD", "Laundry", 15.22), ("GNU", "Groceries", 76.00), ("ABC", "Laundry", 20.25), ("BCD", "Laundry", 15.22), ("GNU", "Rent", 76.00)]
-    return extracted_test_data
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
 
+    # No need to validate date sinse its taken from Calendar widget
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {
+                   'date' : date,
+                   'user_id' : user_id}
+        query = """SELECT name, category, amount FROM expense WHERE date = :date AND user_id = :user_id"""
+        cursor.execute(query, values)
+        results = cursor.fetchall()
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return results
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
+
+ # Select top oldest date record in the table by user_id (limit 1)
 def get_last_start_date_of_oldest_record(user_id):
-    # Select top oldest date record in the table by user_id (limit 1)
-    # MIGHT NEED TO FIX DATE FORMATS TO QDATE IN gui_elements/calendar_view.py
-    # PLACEHOLDER
-    return (2022, 7, 11)
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
 
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {'user_id' : user_id}
+        query = """SELECT MIN(date) FROM expense WHERE user_id = :user_id LIMIT 1"""
+        cursor.execute(query, values)
+        results = cursor.fetchone()[0]
+        cursor.close()
+
+        # Check if result is not empty results
+        if not results:
+            today = datetime.today()
+            first_date_of_month = today.replace(day=1)
+            return first_date_of_month
+
+        # Finally will be executed after 'finally' statements, so return can be made
+        return convert_to_date_time(results)
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
 
 """ FUNCTIONS for groups area """
 def create_group(group_name, list_of_group_records):
@@ -124,6 +181,7 @@ def create_group(group_name, list_of_group_records):
     # Get its index
     # Set this index in the group column for records table in a for loop
     # Return number as an error/no error code
+
 
 
 def get_groups_list(user_id):
@@ -145,7 +203,7 @@ EXTRACTED_TEST_DATA = [("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22
 
 # Add Expense after Add Expense button press
 def add_expense_into_db(user_id, type, name, date, category, amount):
-    sqliteConnection = sqlite3.connect('database.db')
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
     # Validate date format
     if not is_valid_datetime_format(date):
         return 1
@@ -157,8 +215,8 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
         return 3
     try:
         cursor = sqliteConnection.cursor()
-        print("Database created and Successfully Connected to SQLite")
         values = { 'transaction_type' : type,
+                   'name' : name,
                    'category' : category,
                    'date' : date,
                    'amount' : float(amount),
@@ -166,8 +224,8 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
                    'group_id' : None, 
                    'user_id' : user_id}
         query = """INSERT INTO expense
-                (transaction_type, category, date, amount, recurring, group_id, user_id)
-                VALUES (:transaction_type, :category, :date, :amount, :recurring, :group_id, :user_id)"""
+                (name, transaction_type, category, date, amount, recurring, group_id, user_id)
+                VALUES (:name, :transaction_type, :category, :date, :amount, :recurring, :group_id, :user_id)"""
     #   VALUES ('tokyo central', 'grocery', get_today_date(), 43.25, False, NULL, 1);"""
         cursor.execute(query, values)
         sqliteConnection.commit()
@@ -186,7 +244,7 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
 # Add income after Add Income button press
 def add_income_into_db(user_id, date, amount):
     print("Adding income into the database")
-    sqliteConnection = sqlite3.connect('database.db')
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
 
     # Validate date format
     if not is_valid_datetime_format(date):

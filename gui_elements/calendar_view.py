@@ -45,9 +45,7 @@ class CalendarView(QMainWindow):
 
     # Create and display table of daily expenses for the day clicked
     def calendar_date_changed(self):
-        print("The calendar date was changed")
         date_selected = self.calendar.selectedDate().toPyDate()
-        print(date_selected)
         if self.table:
             self.table.deleteLater()
 
@@ -72,7 +70,7 @@ class CustomCalendarWidget(QCalendarWidget):
 
         # Set min and max days to display in the calendar
         self.setMaximumDate(QDate(max_date.year, max_date.month, max_date.day))
-        self.setMinimumDate(QDate(*min_date))
+        self.setMinimumDate(QDate(min_date.year, min_date.month, min_date.day))
 
     # Write sum of the expenses for a day 
     def paintCell(self, painter, rect, date):
@@ -81,6 +79,8 @@ class CustomCalendarWidget(QCalendarWidget):
         # Get the sum of expenses for the current date
         date_str = date.toString("yyyy-MM-dd")
         sum_expenses = get_sum_expenses_by_date(self.user_id, date_str)
+        if not sum_expenses:
+            sum_expenses = 0
 
         # Draw the sum of expenses directly in the cell below the date
         painter.drawText(rect, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter, str(sum_expenses))
@@ -146,18 +146,25 @@ class DateExpenseTable(QWidget):
 
         # Extract data to populate the table 
         expenses_of_the_day = get_list_expenses_by_date(self.user_id, self.date)
+        
+        # If there is not expense data for this date
+        if not expenses_of_the_day:
+            table.setRowCount(1)
+            table.setSpan(0, 0, 1, 3)
+            table.setItem(0, 0, QTableWidgetItem("No Data For This Date"))
 
-        for i, expense_record in enumerate(expenses_of_the_day):
-            # Name, category, amount columns 
-            name = expense_record[0]
-            category = expense_record[1]
-            amount = expense_record[2]
+        else:
+            for i, expense_record in enumerate(expenses_of_the_day):
+                # Name, category, amount columns 
+                name = expense_record[0]
+                category = expense_record[1]
+                amount = expense_record[2]
 
-            # Insert extracted data into a row
-            table.insertRow(i)
-            table.setItem(i, 0, QTableWidgetItem(name))
-            table.setItem(i, 1, QTableWidgetItem(category))
-            table.setItem(i, 2, QTableWidgetItem(str(amount)))
+                # Insert extracted data into a row
+                table.insertRow(i)
+                table.setItem(i, 0, QTableWidgetItem(name))
+                table.setItem(i, 1, QTableWidgetItem(category))
+                table.setItem(i, 2, QTableWidgetItem(str(amount)))
 
         return table
 

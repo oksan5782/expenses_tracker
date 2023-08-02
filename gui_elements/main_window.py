@@ -60,7 +60,7 @@ class MainScreen(QWidget):
         change_limit_button.clicked.connect(self.change_limit)
 
         self.limit_window = ChangeLimitWindow(self.user_id)
-        self.calendar_window = CalendarView(self.user_id)
+        self.calendar_window = None
 
         # Calender Button
         calendar_button = StyledPushButton("Calendar", 150, "#ADD8E6", 18)
@@ -228,7 +228,7 @@ class MainScreen(QWidget):
 
     # Open a window with calender view 
     def open_calender(self):
-        print("Calender clicked")
+        self.calendar_window = CalendarView(self.user_id)
         self.calendar_window.show()
 
     # change monthly budget (limit)

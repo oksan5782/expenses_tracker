@@ -45,7 +45,7 @@ class AddExpenseWindow(QWidget):
 
         # Selection box to enter input
         self.type = QComboBox()
-        # ADD MORE CATEGORIES
+        # Add types
         self.type.addItems(self.types_list)
         # STYLE COMBOBOX
         self.type.setFixedHeight(25)
