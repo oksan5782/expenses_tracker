@@ -302,7 +302,7 @@ class MainScreen(QWidget):
         print(f"{name} was pressed")
 
         # Create an instanse of Category view to fill it with data on the button click
-        self.single_category_view = DisplayCategoryList(self.user_id, name, AddExpenseWindow)
+        self.single_category_view = DisplayCategoryList(self.user_id, name)
 
         # Display newly created instance
         self.single_category_view.show()

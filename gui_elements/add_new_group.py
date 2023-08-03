@@ -125,8 +125,6 @@ class AddGroupWindow(QMainWindow):
     
 
 
-
-
     def select_group_by_calendar(self):
         if self.name_group_line_edit.text():
             self.group_name = self.name_group_line_edit.text()
@@ -136,11 +134,8 @@ class AddGroupWindow(QMainWindow):
             no_group_name_msg = QMessageBox.information(self, "Information", "Group name is missing")
 
 
-
     def generate_group_selection_list_by_date(self):
         if self.calendar.from_date and self.calendar.to_date:
-            print(self.calendar.from_date)
-            print(self.calendar.to_date)
 
             # FIX DATA FORMAT to pass to a search function
             from_date = datetime.date(self.calendar.from_date.year(), self.calendar.from_date.month(), self.calendar.from_date.day())
@@ -211,12 +206,16 @@ class AddGroupWindow(QMainWindow):
                         if label_item:
                             # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
                             label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            else:
+                self.table.setRowCount(1)
+                self.table.setSpan(0, 0, 1, 5)
+                self.table.setItem(0, 0, QTableWidgetItem("No Data For This Date Range"))
 
             table_selection_layout.addWidget(self.table)
 
             # Button to create a group
             create_group_button = QPushButton("Create Group")
-            create_group_button.clicked.connect(lambda : self.create_group(4))
+            create_group_button.clicked.connect(self.create_group)
             create_group_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
             table_selection_layout.addWidget(create_group_button)
 
@@ -250,8 +249,7 @@ class AddGroupWindow(QMainWindow):
         # Hide this window and open a table with checkmarks
         self.category_selection.hide()
         self.resize(500, 350)
-
-
+        
         table_selection_layout = QVBoxLayout()
 
         # Insert a table
@@ -279,8 +277,8 @@ class AddGroupWindow(QMainWindow):
         }"""
         self.table.setStyleSheet(stylesheet)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Name", "Date", "Amount", "Add"])
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount", "Add"])
         self.table.verticalHeader().setDefaultSectionSize(50)
         
         # Populate table with data
@@ -293,26 +291,31 @@ class AddGroupWindow(QMainWindow):
                 # Insert extracted data into a row 
                 self.table.insertRow(i)
                 self.table.setItem(i, 0, QTableWidgetItem(name))
-                self.table.setItem(i, 1, QTableWidgetItem(date))
-                self.table.setItem(i, 2, QTableWidgetItem(str(amount)))
+                self.table.setItem(i, 1, QTableWidgetItem(category))
+                self.table.setItem(i, 2, QTableWidgetItem(date))
+                self.table.setItem(i, 3, QTableWidgetItem(str(amount)))
 
                 # Checkbox to include a record into a group
                 checkbox = QCheckBox("Edit", self)
                 checkbox.setStyleSheet("background-color: #F9EBD1; border: none; border-radius: 5; padding: 5 0" )
-                self.table.setCellWidget(i, 3, checkbox)
+                self.table.setCellWidget(i, 4, checkbox)
             
                 # Make cells besides checkbox non-editable
-                for column in range(3):
+                for column in range(4):
                     label_item = self.table.item(i, column)
                     if label_item:
                         # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
                         label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        else: 
+            self.table.setRowCount(1)
+            self.table.setSpan(0, 0, 1, 5)
+            self.table.setItem(0, 0, QTableWidgetItem("No Data For This Date Range"))
 
         table_selection_layout.addWidget(self.table)
 
         # Button to create a group
         create_group_button = QPushButton("Create Group")
-        create_group_button.clicked.connect(lambda : self.create_group(3))
+        create_group_button.clicked.connect(self.create_group)
         create_group_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         table_selection_layout.addWidget(create_group_button)
 
@@ -322,24 +325,31 @@ class AddGroupWindow(QMainWindow):
         
 
     # Creating a group - marking rows with the group_id
-    def create_group(self, i):
+    def create_group(self):
         row_count = self.table.rowCount()
         column_count = self.table.columnCount()
         selected_rows_data = []
 
         for row in range(row_count):
             # I is the column with checkbox
-            checkbox = self.table.cellWidget(row, i)
+            checkbox = self.table.cellWidget(row, 4)
             if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
-                row_data = [self.table.item(row, column).text() for column in range(i)]
+                row_data = [self.table.item(row, column).text() for column in range(4)]
                 selected_rows_data.append(row_data)
 
         # Get name of the group and create it create group by passing selected_rows_data and group title
-        create_group(self.group_name, selected_rows_data)
+        sql_return_value = create_group(self.user_id, self.group_name, selected_rows_data)
 
-        # COULD WAIT FOR ERROR CODES FROM THE CREATE GROUP FUNCTION AND DISPLAY QMESSAGEBOX
 
-        self.hide()
+        # Error message for invalid name
+        if sql_return_value == 5:
+            invalid_date_msg = QMessageBox.warning(self, "Information", "Group with this name already exists")
+
+
+        # IF VALIDATION PASSED Flush the message 
+        if sql_return_value == 0:
+            success_msg = QMessageBox.information(self, "Information", "Group created")
+            self.hide()
 
 
 class CustomCalendar(QCalendarWidget):
