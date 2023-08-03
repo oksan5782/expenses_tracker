@@ -1,7 +1,7 @@
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QTableWidget, 
                             QTableWidgetItem, QPushButton, QWidget, 
-                            QVBoxLayout, QHeaderView)
+                            QVBoxLayout, QHeaderView, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor
 
@@ -13,7 +13,7 @@ from helpers import get_expenses_by_category, edit_record
 
 
 class DisplayCategoryList(QMainWindow):
-    def __init__(self, user_id, name, new_expense_window):
+    def __init__(self, user_id, name):
         super().__init__()
         self.category_title = name
         self.user_id = user_id
@@ -62,31 +62,37 @@ class DisplayCategoryList(QMainWindow):
         # GETTING DATA FROM THE DATABASE
         current_category_expenses_list = get_expenses_by_category(self.user_id, self.category_title)
         
-        for i, expense_record in enumerate(current_category_expenses_list):
-            name = expense_record[0]
-            date = expense_record[1]
-            amount = expense_record[2]
+        # Check for null
+        if not current_category_expenses_list:
+            self.table_widget.setRowCount(1)
+            self.table_widget.setSpan(0, 0, 1, 4)
+            self.table_widget.setItem(0, 0, QTableWidgetItem("No Data For This Category"))
+        else:
+            for i, expense_record in enumerate(current_category_expenses_list):
+                name = expense_record[0]
+                date = expense_record[1]
+                amount = expense_record[2]
 
-            # Insert extracted data into a row
-            self.table_widget.insertRow(i)
-            self.table_widget.setItem(i, 0, QTableWidgetItem(name))
-            self.table_widget.setItem(i, 1, QTableWidgetItem(date))
-            self.table_widget.setItem(i, 2, QTableWidgetItem(str(amount)))
+                # Insert extracted data into a row
+                self.table_widget.insertRow(i)
+                self.table_widget.setItem(i, 0, QTableWidgetItem(name))
+                self.table_widget.setItem(i, 1, QTableWidgetItem(date))
+                self.table_widget.setItem(i, 2, QTableWidgetItem(str(amount)))
 
-            # Edit button
-            edit_this_expense_button = QPushButton("Edit", self)
-            edit_this_expense_button.setCheckable(True)
-            edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
-            edit_this_expense_button.setFont(QFont("Futura", 16))
-            edit_this_expense_button.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
-            self.table_widget.setCellWidget(i, 3, edit_this_expense_button)
+                # Edit button
+                edit_this_expense_button = QPushButton("Edit", self)
+                edit_this_expense_button.setCheckable(True)
+                edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
+                edit_this_expense_button.setFont(QFont("Futura", 16))
+                edit_this_expense_button.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
+                self.table_widget.setCellWidget(i, 3, edit_this_expense_button)
 
-            # Set all labels as non-editable initially
-            for column in range(3):
-                label_item = self.table_widget.item(i, column)
-                if label_item:
-                    # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
-                    label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                # Set all labels as non-editable initially
+                for column in range(3):
+                    label_item = self.table_widget.item(i, column)
+                    if label_item:
+                        # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
+                        label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
 
 
         outer_frame_layout.addWidget(self.table_widget)
@@ -127,7 +133,7 @@ class DisplayCategoryList(QMainWindow):
 
         else:  # When the "Apply" button is unchecked
             edited_row_data = []
-            # Retrieve data from QTableWidgetItem and print the edited data
+            # Retrieve data from QTableWidgetItem and insert the edited data
             for column in range(3):
                 label_item = self.table_widget.item(row_index, column)
                 if label_item:
@@ -147,8 +153,27 @@ class DisplayCategoryList(QMainWindow):
             edited_row_data.insert(1, self.category_title)
             
             # Update record in DB 
-            edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
-            
-            # Update table after removal of the item
-            self.table_widget.update()
+            sql_return_value = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
+
+             # Error message for invalid date
+            if sql_return_value == 1:
+                invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
+
+            # Error message for invalid name input
+            if sql_return_value == 2:
+                invalid_date_msg = QMessageBox.warning(self, "Information", "Missing name")
+
+            # Error message for invalid amount input 
+            if sql_return_value == 3:
+                invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
+
+
+            # IF VALIDATION PASSED Flush the message 
+            if sql_return_value == 0:
+                success_msg = QMessageBox.information(self, "Information", "Expense updated")
+
+                # Update table value
+                self.table_widget.update()
+
+
 
