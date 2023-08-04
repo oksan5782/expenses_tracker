@@ -183,23 +183,22 @@ def create_group(user_id, group_name, list_of_group_records):
         cursor.execute(check_query, (group_name,))
         existing_group = cursor.fetchone()
 
-        if existing_group:
-            cursor.close()
-            return 5
-        
-        # If the group name doesn't exist, insert the new group
-        insert_query = "INSERT INTO groups (name) VALUES (?);"
-        cursor.execute(insert_query, (group_name,))
+        # Create group name if its new one
+        if not existing_group:
+            insert_query = "INSERT INTO groups (name) VALUES (?);"
+            cursor.execute(insert_query, (group_name,))
+            # Get the newly created group_id
+            existing_group = cursor.lastrowid
+        else: 
+            existing_group = existing_group[0]
 
-        # Get the newly created group_id
-        new_group_id = cursor.lastrowid
 
         data_list = []
         # Create data list to update group_id
         if list_of_group_records:
             for row in list_of_group_records:
                 dictionary = {
-                    'group_id' : new_group_id,
+                    'group_id' : existing_group,
                     'user_id' : user_id,
                     'name' : row[0],
                     'category' : row[1],
@@ -222,6 +221,8 @@ def create_group(user_id, group_name, list_of_group_records):
         # Execute the update query for each dictionary in the list
         for data_dict in data_list:
             cursor.execute(update_query, data_dict)
+            # Commit new group creation
+            # sqliteConnection.commit()
 
         # Commit the changes and close the connection
         sqliteConnection.commit()
@@ -244,9 +245,32 @@ def create_group(user_id, group_name, list_of_group_records):
 
 
 def get_groups_list(user_id):
-    # GROUP list contains a tuple with group title [0] and amout spent [1]
-    group_list = [('Hawaii 22-23', 2000), ('Japan May 23', 2050), ('Japan Sep 23', 1500), ('Medical', 500), ('Dental', 100)]
-    return group_list
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {'user_id' : user_id}
+
+        # SQL query to get group names and sum of amounts for the given user_id
+        query = """
+            SELECT g.name, COALESCE(SUM(e.amount), 0) AS total_amount
+            FROM groups g
+            LEFT JOIN expense e ON g.group_id = e.group_id
+            WHERE e.user_id = :user_id
+            GROUP BY g.group_id
+            LIMIT 10
+            """
+        cursor.execute(query, values)
+        results = cursor.fetchall()
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return results
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 def get_top_10_category_expenses(user_id): 
     # CATEGORIES SECTION Select top 10 of expenses categories with the amount spent this month
@@ -391,13 +415,37 @@ def remove_record(user_id, category, name, date, amount):
 
 
 
-def remove_record_from_the_group(user_id, group_name, expense_name, category, date, amount):
-    # Update record in users table and set group to None
-    print(user_id)
-    print(group_name)
-    print(expense_name)
-    print(date)
-    print(amount)
+def remove_record_from_the_group(user_id, expense_name, category, date, amount):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {'user_id' : user_id,
+                  'group_id' : None,
+                  'expense_name' : expense_name,
+                  'category': category,
+                  'date' : date,
+                  'amount' : amount
+                }
+        update_query = """
+            UPDATE expense
+            SET group_id = :group_id
+            WHERE user_id = :user_id 
+            AND name = :expense_name
+            AND category = :category
+            AND date = :date
+            AND amount = :amount;"""
+
+        cursor.execute(update_query, values)
+        sqliteConnection.commit()
+        cursor.close()
+        return 0 
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 
 # Update record data to new values after searching fir it by previous values
@@ -457,12 +505,33 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
 
 # Select date by user_id and group
 def get_group_expenses(user_id, group_name):
-    print("Getting group data")
-    print(str(user_id) + " " + group_name)
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
 
-    # Placeholder
-    group_data = [("ABC", "Eating Out", "02/03/2023", 20.25), ("BCD", "Eating Out", "04/08/2018", 15.22), ("GNU", "Eating Out", "15/11/2022", 76.00)]
-    return group_data
+        # Get group_id
+        check_query = "SELECT group_id FROM groups WHERE name = ?;"
+        cursor.execute(check_query, (group_name,))
+        current_group = cursor.fetchone()[0]
+
+        # Get values from the group
+        values = {'user_id' : user_id,
+                  'group_id' : current_group}
+        
+        query = """SELECT name, category, date, amount 
+                    FROM expense 
+                    WHERE user_id = :user_id
+                        AND group_id = :group_id"""
+        cursor.execute(query, values)
+        results = cursor.fetchall()
+        cursor.close()
+        return results
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
 
 
 

@@ -1,8 +1,9 @@
 from PyQt6.QtWidgets import (QWidget, QMainWindow, QLabel, QPushButton, QComboBox, 
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
                              QLineEdit, QCalendarWidget, QMessageBox,
-                             QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox)
-from PyQt6.QtCore import Qt
+                             QTableWidget, QTableWidgetItem, QHeaderView,
+                             QDialog, QCheckBox)
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QColor
 
 import datetime
@@ -14,8 +15,9 @@ sys.path.append('../helpers')
 from helpers import get_expenses_by_category, get_expenses_by_date_range, create_group 
 
 class AddGroupWindow(QMainWindow):
-    def __init__(self, user_id, all_categories_list):
-        super().__init__()  
+    updated = pyqtSignal()
+    def __init__(self, user_id, all_categories_list):  
+        super().__init__() 
         self.user_id = user_id
         self.new_group_data = []
         self.categories_list = all_categories_list
@@ -337,19 +339,17 @@ class AddGroupWindow(QMainWindow):
                 row_data = [self.table.item(row, column).text() for column in range(4)]
                 selected_rows_data.append(row_data)
 
-        # Get name of the group and create it create group by passing selected_rows_data and group title
-        sql_return_value = create_group(self.user_id, self.group_name, selected_rows_data)
-
-
-        # Error message for invalid name
-        if sql_return_value == 5:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Group with this name already exists")
-
-
-        # IF VALIDATION PASSED Flush the message 
-        if sql_return_value == 0:
-            success_msg = QMessageBox.information(self, "Information", "Group created")
-            self.hide()
+        # Error message for lack of selection
+        if not selected_rows_data:
+            no_rows_selected_msg = QMessageBox.warning(self, "Information", "Nothing was selected")
+        
+        else:
+            # Get name of the group and create it create group by passing selected_rows_data and group title
+            sql_return_value = create_group(self.user_id, self.group_name, selected_rows_data)
+            # IF VALIDATION PASSED Flush the message 
+            if sql_return_value == 0:
+                success_msg = QMessageBox.information(self, "Information", "Group created")
+                self.close()
 
 
 class CustomCalendar(QCalendarWidget):

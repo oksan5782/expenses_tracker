@@ -111,7 +111,7 @@ class MainScreen(QWidget):
 
 
         # FUNCTIONAL AREA 3 - Groups section
-        placeholder_groups = QWidget()
+        self.placeholder_groups = QWidget()
         groups_layout = QVBoxLayout()
         groups_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
@@ -122,34 +122,43 @@ class MainScreen(QWidget):
         groups_layout.insertSpacing(1, 10)
 
         # Get list of all available groups with the total amount spent
-        GROUP_LIST = helpers.get_groups_list(self.user_id)
+        group_list = helpers.get_groups_list(self.user_id)
 
-        # Create buttons to view available groups
-        for i in range(len(GROUP_LIST)):
+        if not group_list:
             single_group_layout = QHBoxLayout()
-
-            # Button with title
-            button_group_name = AutoShrinkButton(GROUP_LIST[i][0], 200, "#D8BFD8")
-            button_group_name.clicked.connect(lambda x, i=i : self.group_button_press(GROUP_LIST[i][0]))
-            # button_group_name.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 14px; border-radius : 5; padding: 5 0')
-
-            # Label with amount spent
-            label_group_amount = QLabel(str(GROUP_LIST[i][1]))
-            label_group_amount.setFont(QFont('Futura', 16))
-            label_group_amount.setStyleSheet('background-color : #F0FFF0; font-weight: 550; border-radius : 5; padding: 5 0')
-            label_group_amount.setAlignment(Qt.AlignmentFlag.AlignRight)
-
-            # Add layouts
-            single_group_layout.addWidget(button_group_name)
-            single_group_layout.addWidget(label_group_amount)
+            no_groups_label = QLabel("No Groups Created")
+            no_groups_label.setFont(QFont('Futura', 15))
+            no_groups_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            single_group_layout.addWidget(no_groups_label)
             groups_layout.addLayout(single_group_layout)
-            
+
+        else:
+            # Create buttons to view available groups
+            for i in range(len(group_list)):
+                single_group_layout = QHBoxLayout()
+
+                # Button with title
+                button_group_name = AutoShrinkButton(group_list[i][0], 200, "#D8BFD8")
+                button_group_name.clicked.connect(lambda x, i=i : self.group_button_press(group_list[i][0]))
+                # button_group_name.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 14px; border-radius : 5; padding: 5 0')
+
+                # Label with amount spent
+                label_group_amount = QLabel(str(group_list[i][1]))
+                label_group_amount.setFont(QFont('Futura', 16))
+                label_group_amount.setStyleSheet('background-color : #F0FFF0; font-weight: 550; border-radius : 5; padding: 5 0')
+                label_group_amount.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+                # Add layouts
+                single_group_layout.addWidget(button_group_name)
+                single_group_layout.addWidget(label_group_amount)
+                groups_layout.addLayout(single_group_layout)
+
         # Add last button to create a new group
         add_new_group_button = StyledPushButton("New Group", 150, "#D7C3C1", 14)
         add_new_group_button.clicked.connect(self.add_new_group)
         groups_layout.addWidget(add_new_group_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        placeholder_groups.setLayout(groups_layout)
+        self.placeholder_groups.setLayout(groups_layout)
             
 
 
@@ -219,7 +228,7 @@ class MainScreen(QWidget):
         main_layout.addWidget(placeholder_bar_chart, 1, 0, 3, 4)
         main_layout.addWidget(placeholder_categories, 4, 0, 2, 4)
         main_layout.addWidget(placeholder_add_buttons, 0, 4, 2, 2)
-        main_layout.addWidget(placeholder_groups, 2, 4, 4, 2)
+        main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
 
         self.setLayout(main_layout)
 
@@ -279,12 +288,10 @@ class MainScreen(QWidget):
     # FUNCTION AREA 3 methods 
 
     # Should open a window with selection of the expences related to some group
-    def group_button_press(self, name):
-        print(name + " was pressed") 
-        
+    def group_button_press(self, name):        
         # Create a group view instance
         self.single_group_view = DisplayGroupList(self.user_id, name)
-              # Display newly created instance
+        # Display newly created instance
         self.single_group_view.show()
 
     # Should open a list of all transactions and allow user to put checkmark near some to add them to group
@@ -293,7 +300,6 @@ class MainScreen(QWidget):
         self.adding_new_group = AddGroupWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST)
         self.adding_new_group.show()
         
-
 
     # FUNCTION AREA 4 methods
       

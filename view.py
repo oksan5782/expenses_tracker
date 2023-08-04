@@ -6,7 +6,6 @@ from gui_elements.log_in import LogInWindow
 
 import sys
    
-   
 def main():
     app = QtWidgets.QApplication(sys.argv)
 
