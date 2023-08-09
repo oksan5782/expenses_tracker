@@ -2,8 +2,16 @@
 """ FUNCTIONS FOR MAIN WINDOW WIDGET """
 
 from datetime import datetime, timedelta
+from collections import defaultdict
 import pandas as pd
 
+
+"""CONSTANTS"""
+#  Categories list for all categories view
+ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Transportation", "Groceries", "Utilities", "Eating Out", "Health", "Entertainment", "Subscriptions", "Sport", "Other"]
+
+# Expense types
+ALL_EXPENSE_TYPES = ["Credit", "Cash", "Foreign Currency"]
 
 
 # DATETIME ONLY FUNCTIONS 
@@ -18,6 +26,21 @@ def get_last_day_of_current_month():
     last_day_of_current_month = first_day_of_next_month - timedelta(days=1)
 
     return last_day_of_current_month
+
+# Get list of strings for the last 6 months in the format YYYY-MM
+def get_last_6_months():
+
+    today = datetime.today()
+
+    first_day_of_current_month = today.replace(day=1)
+
+    last_6_months = [first_day_of_current_month - timedelta(days=i*30) for i in range(6)][::-1]
+
+    return [date.strftime("%Y-%m") for date in last_6_months]
+
+    # today = datetime.today()
+    # last_6_months = [today - timedelta(days=30*i) for i in range(6)][::-1]
+    # return [date.strftime("%Y-%m") for date in last_6_months]
 
 
 # Convert SQL string of date into datetimr object
@@ -66,14 +89,57 @@ import sqlite3
 
 # Get Recent Expenses for Stacked bar chart
 def get_recent_expenses(user_id):
-    # SELECT DATA for top 5 + OTHER categories not in groups grouped by month
-    recent_expenses = {"Rent" : [2000, 2000, 2000, 2000, 2000, 2000],
-                "Utilities" : [300, 300, 300, 250, 300, 300],
-                "Groceries" : [500, 650, 600, 550, 500, 530],
-                "Eating Out" : [200, 100, 150, 50, 70, 80],
-                "Online" : [50, 0, 200, 70, 10, 40],
-                "Other" : [200, 600, 150, 550, 75, 260]}
-    return recent_expenses
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    try:
+        cursor = sqliteConnection.cursor()
+           # SQL query to get the list of 6 categories sorted by total amount of expenses
+        categories_query = """
+            SELECT category, SUM(amount) AS total_amount
+            FROM expense
+            GROUP BY category
+            ORDER BY total_amount DESC
+            LIMIT 6;
+        """
+
+        # Execute the first query to get the list of 6 categories
+        cursor.execute(categories_query)
+        top_6_categories = [row[0] for row in cursor.fetchall()]
+
+        # Get the date range for the last 6 months and change its order
+        last_6_months = get_last_6_months()
+        last_6_months.reverse()
+
+        # SQL query to get the sum of "amount" grouped by each month and each category
+        sum_query = """
+            SELECT category, strftime('%Y-%m', date) AS month, SUM(amount) AS total_amount
+            FROM expense
+            WHERE strftime('%Y-%m', date) IN ({}) AND category IN ({})
+            GROUP BY category, month
+            ORDER BY category, month;
+        """.format(', '.join(['"{}"'.format(date) for date in last_6_months]),
+                   ', '.join(['"{}"'.format(category) for category in top_6_categories]))
+
+        cursor.execute(sum_query)
+        sums_data = cursor.fetchall()
+
+        # Organize the results in a dictionary format
+        result_dict = {}
+        for category in top_6_categories:
+            result_dict[category] = [0] * 6
+
+        for category, month, total_amount in sums_data:
+            result_dict[category][last_6_months.index(month)] = total_amount
+
+        cursor.close()
+        return result_dict
+ 
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 
 # Get monthly limit set by the user
@@ -111,14 +177,6 @@ def get_sum_expenses_by_date(user_id, date):
         if sqliteConnection:
             sqliteConnection.close()
 
-
-    # cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE date = ? and user = ?", (date, user)))
-    # sum_expenses = cursor.fetchone()[0]
-    # PLACEHOLDER
-    sum_expenses = 0
-    if user_id == 1:
-        sum_expenses = 200
-    return sum_expenses
 
 
 # Extracting all expense records by date
@@ -170,6 +228,7 @@ def get_last_start_date_of_oldest_record(user_id):
     finally:
         if sqliteConnection:
             sqliteConnection.close()
+
 
 """ FUNCTIONS for groups area """
 def create_group(user_id, group_name, list_of_group_records):
@@ -236,11 +295,6 @@ def create_group(user_id, group_name, list_of_group_records):
         if sqliteConnection:
             sqliteConnection.close()
 
-    
-    # Create a new group with a title "group_name" (Check if this name already exists)
-    # Get its index
-    # Set this index in the group column for records table in a for loop
-    # Return number as an error/no error code
 
 
 
@@ -273,14 +327,41 @@ def get_groups_list(user_id):
 
 
 def get_top_10_category_expenses(user_id): 
-    # CATEGORIES SECTION Select top 10 of expenses categories with the amount spent this month
-    top_categpries_list = [('Rent', 2000), ('Grocery', 500), ('Online Orders', 200), ('Eating Out', 150), ('Sport', 100), ('Other', 100)]
-    return top_categpries_list
 
+    # Get the current month and year
+    today = datetime.now()
+    current_month = today.strftime('%Y-%m')
 
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {'user_id' : user_id,
+                  'current_month' : current_month}
 
-# SELECT statement by the category, should return a list with records (description, date, amount). Category can be extracted as well
-EXTRACTED_TEST_DATA = [("ABC", "02/03/2023", 20.25), ("BCD", "04/08/2018", 15.22), ("GNU", "15/11/2022", 76.00)]
+        # SQL query to get group names and sum of amounts for the given user_id
+        query = """
+            SELECT category, SUM(amount) as total_sum
+            FROM expense
+            WHERE user_id = :user_id
+                AND date LIKE :current_month || '-%'
+            GROUP BY category
+            ORDER BY total_sum DESC
+            LIMIT 10;
+            """
+        cursor.execute(query, values)
+        results = cursor.fetchall()
+        # top_10_expenses = [(category, total_sum) for category, total_sum in results]
+        # print(top_10_expenses)
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return results
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 
 
@@ -322,8 +403,116 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
             sqliteConnection.close()
 
 
+# Check if is value already inserted into the table
+def check_record_presence(user_id, name, category, amount):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
 
-        
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {'user_id' : user_id,
+                  'name' : name,
+                  'category': category,
+                  'amount': amount}
+        query = """SELECT expense_id
+                    FROM expense 
+        WHERE user_id = :user_id 
+            AND name = :name
+            AND category = :category
+            AND amount = :amount"""
+        cursor.execute(query, values)
+        results = cursor.fetchone()
+        cursor.close()
+        # Return True if the record is present
+        if results:
+            return True
+        # Return False if record is not added
+        return False
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
+
+
+# Upload expenses from a file
+def upload_expense_csv_chase(user_id, file):
+
+    try:
+        df = pd.read_csv(file)
+
+        # Remove thank you - credit cover line 
+        df_cover_credit_row_index = df[(df['Description'].str.contains('Payment Thank You')) & (df['Type'] == 'Payment')].index
+        df.drop(df_cover_credit_row_index, inplace=True)
+
+        # Update date values to strings 
+        df['Transaction Date'] = pd.to_datetime(df['Transaction Date'], format='%m/%d/%Y')
+        df['Transaction Date'] = df['Transaction Date'].dt.strftime('%Y-%m-%d')
+
+        # Update amount values to float type
+        df['Amount'] = df['Amount'].astype(float)
+
+        # Get positive values to upload them as income 
+        df_returns_or_income = df[df['Amount'] > 0]
+
+        # Insert these values as income using iterrows
+        for index, row in df_returns_or_income.iterrows():
+            add_income_into_db(user_id, row['Transaction Date'], row['Amount'])
+
+        # Remove positive values from the DataFrame
+        df.drop(df_returns_or_income.index, inplace=True)
+
+        # Remove columns Post Date, Memo and Type and reindex DataFrame
+        df = df.drop(['Post Date', 'Type', 'Memo'], axis=1)
+        df.reset_index(drop=True, inplace=True)
+
+        # Change sign for all negative amounts 
+        df['Amount'] = df['Amount'] * -1
+
+        # Standartize category names
+        df['Category'] = df['Category'].str.replace('Bills & Utilities', 'Utilities')
+        df['Category'] = df['Category'].str.replace('Food & Drink', 'Eating Out')
+        df['Category'] = df['Category'].str.replace('Health & Wellness', 'Health')
+        # Replace values not in the list with 'Other'
+        df.loc[~df['Category'].isin(ALL_POSSIBLE_CATEGORIES_LIST), 'Category'] = 'Other'
+
+
+        # Find last uploaded transaction:
+        check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'])
+
+        # If latest record is already added, all of the table content is already uploaded
+        if check_first_row:
+            return 2
+    
+        # Check if last record is uploaded
+        last_row_index = df.tail(1).index[0]
+        check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'])
+
+        # If oldest value is in the database, attempting binary search to find where the division starts
+        if check_last_row:
+            top_row = 0
+            bottom_row = last_row_index
+            # Button floor will be last index 
+            while top_row <= bottom_row:
+                mid = (top_row + bottom_row) // 2
+
+                if not check_record_presence(user_id, df.loc[mid, 'Description'], df.loc[mid, 'Category'], df.loc[mid, 'Amount']):
+                    last_row_index = mid
+                    top_row = mid + 1  # Move to the bottom to find the last occurrence
+                else:
+                    bottom_row = mid - 1
+            df = df.iloc[:last_row_index + 1]
+
+        # Upload all table values 
+        for index, row in df.iterrows():
+            add_expense_into_db(user_id, 'Credit', row['Description'], row['Transaction Date'], row['Category'], row['Amount'])
+        return 0
+    except (IndexError, TypeError, NameError, ValueError, KeyError):
+        return 1
+
+
 # Add income after Add Income button press
 def add_income_into_db(user_id, date, amount):
     print("Adding income into the database")
@@ -473,6 +662,9 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
     # check if amount is aa positive numeric value
     if not is_valid_numeral(values['new_amount']):
         return 3
+    # check if category is among the ones available
+    if values['new_category'] not in ALL_POSSIBLE_CATEGORIES_LIST:
+        return 4
 
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:

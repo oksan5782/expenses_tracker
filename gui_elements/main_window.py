@@ -26,10 +26,6 @@ sys.path.append('../helpers')
 import helpers 
 
 
-#  Categories list for all categories view
-ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Utilities", "Grocery", "Eating Out", "Online Shopping", "Sport", "Charity", "Other"]
-# Expense types
-ALL_EXPENSE_TYPES = ["Credit", "Cash", "Foreign Currency"]
 
 class MainScreen(QWidget):
     def __init__(self, user_id):
@@ -97,8 +93,8 @@ class MainScreen(QWidget):
         self.add_expense_window = None
     
         # Upload Expense Button
-        upload_expence_button = StyledPushButton("Upload .xls", 150, "#B2CDD6", 14)
-        upload_expence_button.clicked.connect(self.open_upload_expense)
+        upload_expence_button = StyledPushButton("Upload Chase .csv", 150, "#B2CDD6", 14)
+        upload_expence_button.clicked.connect(self.open_upload_expense_chase)
 
         # Insert buttons to the layout
         add_income_expence_layout.addWidget(add_income_button)
@@ -163,7 +159,7 @@ class MainScreen(QWidget):
 
 
         # FUNCTIONAL AREA 4 - Categories section
-        placeholder_categories = QWidget()
+        self.placeholder_categories = QWidget()
         categories_grid_layout = QGridLayout()
 
         # Add title to Categories section
@@ -183,7 +179,6 @@ class MainScreen(QWidget):
 
         # Get top 10 categories in user's expenses (tuple: name, spent this  month)
         TOP_CATEGORIES_LIST = helpers.get_top_10_category_expenses(self.user_id)
-
         # Create buttons with categories
         for i in range(len(TOP_CATEGORIES_LIST)):
 
@@ -203,7 +198,7 @@ class MainScreen(QWidget):
             single_category_layout.addWidget(category_item_button)
             categories_grid_layout.addLayout(single_category_layout, (i// 5) + 1, i % 5, 1, 1)
 
-        placeholder_categories.setLayout(categories_grid_layout)
+        self.placeholder_categories.setLayout(categories_grid_layout)
 
 
         # FUNCTIONAL AREA 5 - Bar chart and pie chart section
@@ -213,8 +208,8 @@ class MainScreen(QWidget):
         charts_area_layout = QGridLayout()
 
         # Create stacked bar chart with excpenses for the last 6 months
-        stacked_bar_chart = StackedBarChart(self.user_id)
-        charts_area_layout.addWidget(stacked_bar_chart, 0, 0, 1, 4)
+        self.stacked_bar_chart = StackedBarChart(self.user_id)
+        charts_area_layout.addWidget(self.stacked_bar_chart, 0, 0, 1, 4)
 
         # Create donut chart with monthly limit
         current_month_donut_chart = DonutChart(self.user_id)
@@ -226,14 +221,15 @@ class MainScreen(QWidget):
         # Add 5 FUNCTIONAL AREAS to the layout
         main_layout.addWidget(greeting_with_calender, 0, 0, 1, 4)
         main_layout.addWidget(placeholder_bar_chart, 1, 0, 3, 4)
-        main_layout.addWidget(placeholder_categories, 4, 0, 2, 4)
+        main_layout.addWidget(self.placeholder_categories, 4, 0, 2, 4)
         main_layout.addWidget(placeholder_add_buttons, 0, 4, 2, 2)
         main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
 
         self.setLayout(main_layout)
-
+        print('Set layout')
 
     # FUNCTION AREA 1 methods  
+
 
     # Open a window with calender view 
     def open_calender(self):
@@ -255,33 +251,42 @@ class MainScreen(QWidget):
 
     # Open a window with add expense view
     def open_add_expense(self):
-        self.add_expense_window = AddExpenseWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES)
+        self.add_expense_window = AddExpenseWindow(self.user_id, self.placeholder_categories)
         self.add_expense_window.show()
 
 
     # Open a window with upload file view
-    def open_upload_expense(self):
+    def open_upload_expense_chase(self):
         print("Upload expense Button clicked")
 
         # Use QFileDialog to open a window to select a file
-        file_filter = "Text Files (*.csv *.xls *.xlsx)"
+        file_filter = "Text Files (*.csv)"
         file_dialog = QFileDialog.getOpenFileName(
             parent=self,
-            caption="Select an Excel or CSV file",
+            caption="Select a CSV file",
             directory="",
             filter=file_filter)
         
-        # RUN CHECKS if the file could be open
-        with open(file_dialog[0], 'r') as f:
-            for line in f:
-                print(line.rstrip())
+        # If no file has been selected
+        if not file_dialog[0]:
+            no_file_selected_msg = QMessageBox.warning(self, "Information", "No file selected")
+        
+        # Process the file
+        else:
+            sql_return_value = helpers.upload_expense_csv_chase(self.user_id, file_dialog[0])
+            
+            # File cannot be uploaded - not matching Chase formatting
+            if sql_return_value == 1: 
+                wrong_format_msg = QMessageBox.information(self, "Information", "The file does not match Chase format")
 
-        # EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
-        # EXTRACT ONLY THE FILENAME AND PASS IT TO PANDAS
 
-        # FLUSH A MESSAGE THAT FILE WAS UPLOADED
-        # message box = parent, title, message
-        upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
+            # File is already added to db
+            if sql_return_value == 2: 
+                file_already_uploaded_msg = QMessageBox.information(self, "Information", "The file content was already added to the database")
+
+            # Flush success message
+            if sql_return_value == 0: 
+                upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
 
   
     
@@ -297,7 +302,7 @@ class MainScreen(QWidget):
     # Should open a list of all transactions and allow user to put checkmark near some to add them to group
     def add_new_group(self):
         print("Add New Group Button pressed")
-        self.adding_new_group = AddGroupWindow(self.user_id, ALL_POSSIBLE_CATEGORIES_LIST)
+        self.adding_new_group = AddGroupWindow(self.user_id, helpers.ALL_POSSIBLE_CATEGORIES_LIST)
         self.adding_new_group.show()
         
 
@@ -330,7 +335,7 @@ class MainScreen(QWidget):
 
         self.list_all_categories_widget.setGeometry(500, 200, 600, 300)
 
-        for index, name in enumerate(ALL_POSSIBLE_CATEGORIES_LIST):
+        for index, name in enumerate(helpers.ALL_POSSIBLE_CATEGORIES_LIST):
             # Label names
             label_category_name = QLabel(name)
             label_category_name.setFont(QFont('Futura', 16))

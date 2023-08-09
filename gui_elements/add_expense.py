@@ -6,14 +6,13 @@ from PyQt6.QtGui import QFont
 # Import data insertion function
 import sys
 sys.path.append('../helpers')
-from helpers import add_expense_into_db
+from helpers import add_expense_into_db, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES
 
 class AddExpenseWindow(QWidget):
-    def __init__(self, user_id, categories_list, types_list):
+    def __init__(self, user_id, MainWindow):
         super().__init__()  
         self.user_id = user_id
-        self.types_list = types_list
-        self.categories_list = categories_list
+        self.main_window = MainWindow
         self.setWindowTitle("Add Expense")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -46,7 +45,7 @@ class AddExpenseWindow(QWidget):
         # Selection box to enter input
         self.type = QComboBox()
         # Add types
-        self.type.addItems(self.types_list)
+        self.type.addItems(ALL_EXPENSE_TYPES)
         # STYLE COMBOBOX
         self.type.setFixedHeight(25)
         self.type.setStyleSheet("QComboBox QAbstractItemView {"
@@ -62,7 +61,7 @@ class AddExpenseWindow(QWidget):
         # Selection box to enter input
         self.category = QComboBox()
         # ADD MORE CATEGORIES
-        self.category.addItems(self.categories_list)
+        self.category.addItems(ALL_POSSIBLE_CATEGORIES_LIST)
         # STYLE COMBOBOX
         self.category.setFixedHeight(25)
         self.category.setStyleSheet("QComboBox QAbstractItemView {"
@@ -111,6 +110,9 @@ class AddExpenseWindow(QWidget):
         if sql_return_value == 0:
             success_msg = QMessageBox.information(self, "Information", "Expense added")
             
+            # Repaint other window
+            self.main_window.repaint()
+            print("Repaint attempted")
             # GO BACK TO MAIN WINDOW
             self.close()
 

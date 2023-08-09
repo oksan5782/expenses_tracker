@@ -180,12 +180,15 @@ class DisplayGroupList(QMainWindow):
 
             # Error message for invalid name input
             if sql_return_value == 2:
-                invalid_date_msg = QMessageBox.warning(self, "Information", "Missing name")
+                invalid_name_msg = QMessageBox.warning(self, "Information", "Missing name")
 
             # Error message for invalid amount input 
             if sql_return_value == 3:
-                invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
+                invalid_amount_msg = QMessageBox.warning(self, "Information", "Invalid amount")
 
+            # Error message for invalid category
+            if sql_return_value == 4:
+                invalid_category_msg = QMessageBox.warning(self, "Information", "Invalid category. Try capitalizing the name or use Other")
 
             # IF VALIDATION PASSED Flush the message 
             if sql_return_value == 0:
