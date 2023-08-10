@@ -42,7 +42,6 @@ cur.execute("""CREATE TABLE expense (
     category TEXT NOT NULL,
     date TEXT NOT NULL,
     amount REAL NOT NULL,
-    recurring INTEGER,
     group_id INTEGER, 
     user_id INTEGER NOT NULL,
     FOREIGN KEY (group_id) REFERENCES groups (group_id),

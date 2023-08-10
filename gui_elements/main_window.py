@@ -92,15 +92,21 @@ class MainScreen(QWidget):
         add_expence_button.clicked.connect(self.open_add_expense)
         self.add_expense_window = None
     
-        # Upload Expense Button
-        upload_expence_button = StyledPushButton("Upload Chase .csv", 150, "#B2CDD6", 14)
-        upload_expence_button.clicked.connect(self.open_upload_expense_chase)
+        # Upload Chase Button
+        upload_chase_button = StyledPushButton("Upload Chase .csv", 150, "#B2CDD6", 14)
+        upload_chase_button.clicked.connect(self.open_upload_expense_chase)
+
+        # Upload Discover Button 
+        upload_discover_button = StyledPushButton("Upload Discover .csv", 150, "#B2CDD6", 14)
+        upload_discover_button.clicked.connect(self.open_upload_expense_discover)
 
         # Insert buttons to the layout
         add_income_expence_layout.addWidget(add_income_button)
-        add_income_expence_layout.insertSpacing(1, 25)
+        add_income_expence_layout.insertSpacing(1, 10)
         add_income_expence_layout.addWidget(add_expence_button)
-        add_income_expence_layout.addWidget(upload_expence_button)
+        add_income_expence_layout.addWidget(upload_chase_button)
+        add_income_expence_layout.addWidget(upload_discover_button)
+
 
         placeholder_add_buttons.setLayout(add_income_expence_layout)
 
@@ -255,7 +261,40 @@ class MainScreen(QWidget):
         self.add_expense_window.show()
 
 
-    # Open a window with upload file view
+    # Open a window with upload file view for Chase
+    def open_upload_expense_discover(self):
+        print("Upload expense Button clicked")
+
+        # Use QFileDialog to open a window to select a file
+        file_filter = "Text Files (*.csv)"
+        file_dialog = QFileDialog.getOpenFileName(
+            parent=self,
+            caption="Select a CSV file",
+            directory="",
+            filter=file_filter)
+        
+        # If no file has been selected
+        if not file_dialog[0]:
+            no_file_selected_msg = QMessageBox.warning(self, "Information", "No file selected")
+        
+        # Process the file
+        else:
+            sql_return_value = helpers.upload_expense_csv_discover(self.user_id, file_dialog[0])
+            
+            # File cannot be uploaded - not matching Discover formatting
+            if sql_return_value == 1: 
+                wrong_format_msg = QMessageBox.information(self, "Information", "The file does not match Discover format")
+
+            # File is already added to db
+            if sql_return_value == 2: 
+                file_already_uploaded_msg = QMessageBox.information(self, "Information", "The file content was already added to the database")
+
+            # Flush success message
+            if sql_return_value == 0: 
+                upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
+
+
+    # Open a window with upload file view for Chase
     def open_upload_expense_chase(self):
         print("Upload expense Button clicked")
 
@@ -278,7 +317,6 @@ class MainScreen(QWidget):
             # File cannot be uploaded - not matching Chase formatting
             if sql_return_value == 1: 
                 wrong_format_msg = QMessageBox.information(self, "Information", "The file does not match Chase format")
-
 
             # File is already added to db
             if sql_return_value == 2: 

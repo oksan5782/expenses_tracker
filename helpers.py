@@ -79,12 +79,7 @@ def is_valid_numeral(number):
 # Setup sqlite3
 import sqlite3
 
-
-    # Upload expense TO DO LATER EXTRACT NEEDED DATA AND INSERT IT TO THE DATABASE
-        # EXTRACT ONLY THE FILENAME AND PASS IT TO PANDAS
-
-
-    # CHECK IF the all recurring transactions were placed this month
+# CHECK IF the all recurring transactions were placed this month
 
 
 # Get Recent Expenses for Stacked bar chart
@@ -384,13 +379,11 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
                    'category' : category,
                    'date' : date,
                    'amount' : float(amount),
-                   'recurring' : False,
                    'group_id' : None, 
                    'user_id' : user_id}
         query = """INSERT INTO expense
-                (name, transaction_type, category, date, amount, recurring, group_id, user_id)
-                VALUES (:name, :transaction_type, :category, :date, :amount, :recurring, :group_id, :user_id)"""
-    #   VALUES ('tokyo central', 'grocery', get_today_date(), 43.25, False, NULL, 1);"""
+                (name, transaction_type, category, date, amount, group_id, user_id)
+                VALUES (:name, :transaction_type, :category, :date, :amount, :group_id, :user_id)"""
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
@@ -404,7 +397,7 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
 
 
 # Check if is value already inserted into the table
-def check_record_presence(user_id, name, category, amount):
+def check_record_presence(user_id, name, category, amount, date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
     try:
@@ -412,13 +405,15 @@ def check_record_presence(user_id, name, category, amount):
         values = {'user_id' : user_id,
                   'name' : name,
                   'category': category,
-                  'amount': amount}
+                  'amount': amount,
+                  'date': date}
         query = """SELECT expense_id
                     FROM expense 
         WHERE user_id = :user_id 
             AND name = :name
             AND category = :category
-            AND amount = :amount"""
+            AND amount = :amount
+            AND date = :date"""
         cursor.execute(query, values)
         results = cursor.fetchone()
         cursor.close()
@@ -439,7 +434,6 @@ def check_record_presence(user_id, name, category, amount):
 
 # Upload expenses from a file
 def upload_expense_csv_chase(user_id, file):
-
     try:
         df = pd.read_csv(file)
 
@@ -480,7 +474,7 @@ def upload_expense_csv_chase(user_id, file):
 
 
         # Find last uploaded transaction:
-        check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'])
+        check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'], df.loc[0, 'Transaction Date'])
 
         # If latest record is already added, all of the table content is already uploaded
         if check_first_row:
@@ -488,7 +482,7 @@ def upload_expense_csv_chase(user_id, file):
     
         # Check if last record is uploaded
         last_row_index = df.tail(1).index[0]
-        check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'])
+        check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'], df.loc[last_row_index, 'Transaction Date'])
 
         # If oldest value is in the database, attempting binary search to find where the division starts
         if check_last_row:
@@ -498,7 +492,7 @@ def upload_expense_csv_chase(user_id, file):
             while top_row <= bottom_row:
                 mid = (top_row + bottom_row) // 2
 
-                if not check_record_presence(user_id, df.loc[mid, 'Description'], df.loc[mid, 'Category'], df.loc[mid, 'Amount']):
+                if not check_record_presence(user_id, df.loc[mid, 'Description'], df.loc[mid, 'Category'], df.loc[mid, 'Amount'], df.loc[mid, 'Transaction Date']):
                     last_row_index = mid
                     top_row = mid + 1  # Move to the bottom to find the last occurrence
                 else:
@@ -511,6 +505,88 @@ def upload_expense_csv_chase(user_id, file):
         return 0
     except (IndexError, TypeError, NameError, ValueError, KeyError):
         return 1
+
+
+# Upload Discover csv
+def upload_expense_csv_discover(user_id, file):
+    try:
+        df = pd.read_csv(file)
+
+        # Remove thank you - credit cover line 
+        df_cover_credit_row_index = df[(df['Description'].str.contains('THANK YOU')) & (df['Category'] == 'Payments and Credits')].index
+        df.drop(df_cover_credit_row_index, inplace=True)
+
+        # Update date values to strings 
+        df['Trans. Date'] = pd.to_datetime(df['Trans. Date'], format='%m/%d/%Y')
+        df['Trans. Date'] = df['Trans. Date'].dt.strftime('%Y-%m-%d')
+
+        # Update amount values to float type
+        df['Amount'] = df['Amount'].astype(float)
+
+        # Get NEGATIVE values to upload them as income 
+        df_returns_or_income = df[df['Amount'] < 0]
+
+        # Change sign these all negative amounts 
+        if not df_returns_or_income.empty:
+            df_returns_or_income['Amount'] = df_returns_or_income['Amount'] * -1
+
+            # Insert these values as income using iterrows
+            for index, row in df_returns_or_income.iterrows():
+              add_income_into_db(user_id, row['Trans. Date'], row['Amount'])
+
+            # Remove positive values from the DataFrame
+            df.drop(df_returns_or_income.index, inplace=True)
+
+        # Remove extra columns Post Date, Memo and Type and reindex DataFrame
+        df = df.drop(['Post Date'], axis=1)
+        df.reset_index(drop=True, inplace=True)
+
+        # Standartize category names
+        df['Category'] = df['Category'].str.replace('Warehouse Clubs', 'Groceries')
+        df['Category'] = df['Category'].str.replace('Supermarkets', 'Groceries')
+        df['Category'] = df['Category'].str.replace('Gasoline', 'Transportation')
+        df['Category'] = df['Category'].str.replace('Travel/ Entertainment', 'Transportation')
+        df['Category'] = df['Category'].str.replace('Medical Services', 'Health')
+
+
+        df['Category'] = df['Category'].str.replace('Restaurants', 'Eating Out')
+
+        # Replace values not in the list with 'Other'
+        df.loc[~df['Category'].isin(ALL_POSSIBLE_CATEGORIES_LIST), 'Category'] = 'Other'
+
+        # Find last uploaded transaction:
+        check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'], df.loc[0, 'Trans. Date'])
+
+        # If latest record is already added, all of the table content is already uploaded
+        if check_first_row:
+            return 2
+
+        # Check if last record is uploaded
+        last_row_index = df.tail(1).index[0]
+        check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'], df.loc[last_row_index, 'Trans. Date'])
+
+        # If oldest value is in the database, attempting binary search to find where the division starts
+        if check_last_row:
+            top_row = 0
+            bottom_row = last_row_index
+            # Button floor will be last index 
+            while top_row <= bottom_row:
+                mid = (top_row + bottom_row) // 2
+
+            if not check_record_presence(user_id, df.loc[mid, 'Description'], df.loc[mid, 'Category'], df.loc[mid, 'Amount'], df.loc[mid, 'Trans. Date']):
+                last_row_index = mid
+                top_row = mid + 1  # Move to the bottom to find the last occurrence
+            else:
+                bottom_row = mid - 1
+        df = df.iloc[:last_row_index + 1]
+
+        # Upload all table values 
+        for index, row in df.iterrows():
+           add_expense_into_db(user_id, 'Credit', row['Description'], row['Trans. Date'], row['Category'], row['Amount'])
+        return 0
+    except (IndexError, TypeError, NameError, ValueError, KeyError):
+        return 1
+
 
 
 # Add income after Add Income button press
