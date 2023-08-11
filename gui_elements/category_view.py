@@ -56,7 +56,7 @@ class DisplayCategoryList(QMainWindow):
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(stylesheet)
         self.table_widget.setColumnCount(4)
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Amount", "Edit"])
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)", "Edit"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
         # GETTING DATA FROM THE DATABASE

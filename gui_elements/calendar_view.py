@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import (QMainWindow, QCalendarWidget,
+from PyQt6.QtWidgets import (QCalendarWidget,
                             QHBoxLayout, QVBoxLayout, QWidget, QTableWidget, 
                             QTableWidgetItem, QHeaderView, QPushButton, 
                             QLabel, QAbstractItemView)
@@ -18,7 +18,7 @@ class CustomCalendarCell(QTableWidgetItem):
         self.setFlags(Qt.ItemFlag.ItemIsEnabled)
 
 
-class CalendarView(QMainWindow):
+class CalendarView(QWidget):
     def __init__(self, user_id):
         super().__init__()
         self.user_id = user_id
@@ -28,12 +28,9 @@ class CalendarView(QMainWindow):
         self.setWindowTitle('Calendar View')
         self.setGeometry(300, 200, 550, 450)
 
-        central_widget = QWidget(self)
-        self.setCentralWidget(central_widget)
-
         self.layout = QHBoxLayout()
         self.layout.setSpacing(20)
-        central_widget.setLayout(self.layout)
+        self.setLayout(self.layout)
 
         # Adding calendar
         self.calendar = CustomCalendarWidget(self.user_id) 
@@ -79,6 +76,9 @@ class CustomCalendarWidget(QCalendarWidget):
         # Get the sum of expenses for the current date
         date_str = date.toString("yyyy-MM-dd")
         sum_expenses = get_sum_expenses_by_date(self.user_id, date_str)
+        if sum_expenses:
+            sum_expenses = round(sum_expenses, 2)
+            print(sum_expenses)
         if not sum_expenses:
             sum_expenses = 0
 
@@ -138,7 +138,7 @@ class DateExpenseTable(QWidget):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         table.setStyleSheet(stylesheet)
         table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["Name", "Date", "Amount"])
+        table.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)"])
         table.verticalHeader().setDefaultSectionSize(50)
 
         # Make table cells non-editable

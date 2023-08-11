@@ -85,7 +85,6 @@ import sqlite3
 # Get Recent Expenses for Stacked bar chart
 def get_recent_expenses(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-
     try:
         cursor = sqliteConnection.cursor()
            # SQL query to get the list of 6 categories sorted by total amount of expenses
@@ -137,16 +136,14 @@ def get_recent_expenses(user_id):
 
 
 
-# Get monthly limit set by the user
+# Functions for Balance area
 def get_monthly_budget(user_id):
-    # SELECT limit from users table by user_id
-    monthly_limit = 4000  
-    return monthly_limit  
+    # PLACEHOLDER
+    return 4000
 
 def get_this_month_expenses(user_id):
-    # Extract the sum of all expenses this month
-    this_month_expenses = 3300
-    return this_month_expenses
+    # PLACEHOLDER
+    return 3300
 
 """Functions for calendar block """
 # Extracting the sum of expenses for a given date
@@ -447,6 +444,7 @@ def upload_expense_csv_chase(user_id, file):
 
         # Update amount values to float type
         df['Amount'] = df['Amount'].astype(float)
+        print(df)
 
         # Get positive values to upload them as income 
         df_returns_or_income = df[df['Amount'] > 0]
@@ -835,4 +833,6 @@ def register_user(username, password, password_confirmation):
     # PlaceHolder function
     passed = True
     return passed
+
+
 

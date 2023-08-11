@@ -56,9 +56,7 @@ class LogInWindow(QWidget):
     def log_in_user(self, username, password):
         user_id = log_in_check(username, password)
 
-        if user_id > 0:
-            print("Молодець")
-            
+        if user_id > 0:            
             # Create main window object 
             main_window = MainScreen(1)
             main_window.show()

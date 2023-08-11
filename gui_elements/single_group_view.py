@@ -29,6 +29,7 @@ class DisplayGroupList(QMainWindow):
         self.setWindowTitle(f"{self.group_name} Expenses")
         self.setGeometry(450, 250, 750, 500)
 
+
         self.table_widget = QTableWidget(self)
         stylesheet = """
         QTableWidget {
@@ -54,7 +55,7 @@ class DisplayGroupList(QMainWindow):
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(stylesheet)
         self.table_widget.setColumnCount(6)
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount", "Edit", "Exclude"])
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Edit", "Exclude"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
         # GETTING DATA FROM THE DATABASE
@@ -114,10 +115,10 @@ class DisplayGroupList(QMainWindow):
         closing_button.setFont(QFont("Futura", 16))
         closing_button.clicked.connect(self.close_group_view)
         outer_frame_layout.addWidget(closing_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        
         # Set layout and display it
         outer_frame.setLayout(outer_frame_layout)
         self.setCentralWidget(outer_frame)
+
         self.show()
     
     # Usage of the button to close the window

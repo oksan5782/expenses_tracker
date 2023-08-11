@@ -9,10 +9,9 @@ sys.path.append('../helpers')
 from helpers import add_expense_into_db, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES
 
 class AddExpenseWindow(QWidget):
-    def __init__(self, user_id, MainWindow):
+    def __init__(self, user_id):
         super().__init__()  
         self.user_id = user_id
-        self.main_window = MainWindow
         self.setWindowTitle("Add Expense")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -70,7 +69,7 @@ class AddExpenseWindow(QWidget):
         layout.addRow(label_category, self.category)
 
         # Row 5 - Amount
-        label_amount = QLabel("Expense Amount:")
+        label_amount = QLabel("Expense Amount ($):")
         label_amount.setFont(QFont('Futura', 16))
 
         # QLine edit to enter input
@@ -111,8 +110,6 @@ class AddExpenseWindow(QWidget):
             success_msg = QMessageBox.information(self, "Information", "Expense added")
             
             # Repaint other window
-            self.main_window.repaint()
-            print("Repaint attempted")
             # GO BACK TO MAIN WINDOW
             self.close()
 

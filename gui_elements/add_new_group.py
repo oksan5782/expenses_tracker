@@ -12,15 +12,13 @@ import datetime
 # Import data insertion function
 import sys
 sys.path.append('../helpers')
-from helpers import get_expenses_by_category, get_expenses_by_date_range, create_group 
+from helpers import get_expenses_by_category, get_expenses_by_date_range, create_group, ALL_POSSIBLE_CATEGORIES_LIST 
 
 class AddGroupWindow(QMainWindow):
-    updated = pyqtSignal()
-    def __init__(self, user_id, all_categories_list):  
+    def __init__(self, user_id):  
         super().__init__() 
         self.user_id = user_id
         self.new_group_data = []
-        self.categories_list = all_categories_list
         self.setWindowTitle("Create New Group")
         self.setStyleSheet('background-color: #F5FFFA')
         self.setGeometry(500, 200, 350, 300)
@@ -106,7 +104,7 @@ class AddGroupWindow(QMainWindow):
 
         # QComboBox selection itself
         self.list_expenses_selection = QComboBox()
-        self.list_expenses_selection.addItems(self.categories_list)
+        self.list_expenses_selection.addItems(ALL_POSSIBLE_CATEGORIES_LIST)
         # Style Combobox
         self.list_expenses_selection.setFixedHeight(50)
         self.list_expenses_selection.setStyleSheet("QComboBox QAbstractItemView {""selection-color: #2E8B57""}")
@@ -179,7 +177,7 @@ class AddGroupWindow(QMainWindow):
             self.table.setStyleSheet(stylesheet)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
             self.table.setColumnCount(5)
-            self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount", "Add"])
+            self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Add"])
             self.table.verticalHeader().setDefaultSectionSize(50)
 
             # Populate table with data
@@ -280,7 +278,7 @@ class AddGroupWindow(QMainWindow):
         self.table.setStyleSheet(stylesheet)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount", "Add"])
+        self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Add"])
         self.table.verticalHeader().setDefaultSectionSize(50)
         
         # Populate table with data

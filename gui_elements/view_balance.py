@@ -8,7 +8,7 @@ sys.path.append('../helpers')
 from helpers import set_new_limit
 
 
-class ChangeLimitWindow(QWidget):
+class ViewBalanceWindow(QWidget):
     def __init__(self, user_id):
         super().__init__()  
         self.user_id = user_id

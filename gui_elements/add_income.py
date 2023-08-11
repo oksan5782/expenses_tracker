@@ -29,7 +29,7 @@ class AddIncomeWindow(QWidget):
         layout.addRow(label_date, self.label_date_line_edit)
 
         # Row 2 - Amount
-        label_amount = QLabel("Income Amount:")
+        label_amount = QLabel("Income Amount ($):")
         label_amount.setFont(QFont('Futura', 16))
 
         # QLine edit to enter input
