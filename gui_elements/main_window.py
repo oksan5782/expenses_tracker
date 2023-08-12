@@ -49,24 +49,17 @@ class MainScreen(QWidget):
 
         # Add 5 FUNCTIONAL conmonets to the layout
         main_layout.addWidget(self.greeting_with_calender, 0, 0, 1, 4)
-        print("added greeting")
         main_layout.addWidget(self.placeholder_bar_chart, 1, 0, 3, 4)
-        print("added charts")
         main_layout.addWidget(self.placeholder_categories, 4, 0, 2, 4)
-        print("added categories")
         main_layout.addWidget(self.placeholder_add_buttons, 0, 4, 2, 2)
-        print("added buttons")
         main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
-        print("added groups")
 
         self.setLayout(main_layout)
-        print("set layout")
 
 
 
     # FUNCTIONAL AREA 1 in the top left of the grid box
     def generate_greeting_area(self):
-        print("Start greeting")
         self.greeting_with_calender = QWidget()
 
         # First row
@@ -99,13 +92,10 @@ class MainScreen(QWidget):
         v_greeting_layout.addLayout(inner_greeting_layout)
 
         self.greeting_with_calender.setLayout(v_greeting_layout)
-        print("End greeting")
 
 
     # FUNCTIONAL AREA 2 - user entry section
     def generate_buttons_area(self):
-        print("Start buttons")
-
         self.placeholder_add_buttons = QWidget()
         add_income_expence_layout = QVBoxLayout()
 
@@ -135,13 +125,10 @@ class MainScreen(QWidget):
         add_income_expence_layout.addWidget(upload_discover_button)
 
         self.placeholder_add_buttons.setLayout(add_income_expence_layout)
-        print("End buttons")
 
 
         # FUNCTIONAL AREA 3 - Groups section
     def generate_groups_area(self):
-        print("Start groups")
-
         self.placeholder_groups = QWidget()
         groups_layout = QVBoxLayout()
         groups_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -189,13 +176,10 @@ class MainScreen(QWidget):
         groups_layout.addWidget(add_new_group_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.placeholder_groups.setLayout(groups_layout)
-        print("End groups")
 
 
     # FUNCTIONAL AREA 4 - Categories section
     def generate_categories_area(self):
-        print("Start categories")
-
         self.placeholder_categories = QWidget()
         categories_grid_layout = QGridLayout()
 
@@ -243,13 +227,10 @@ class MainScreen(QWidget):
             categories_grid_layout.addWidget(no_categories_label, 1, 0, 1, 5)
 
         self.placeholder_categories.setLayout(categories_grid_layout)
-        print("End categories")
 
 
     # FUNCTIONAL AREA 5 - Bar chart and pie chart section
     def generate_charts_area(self):
-        print("Start charts")
-
         self.placeholder_bar_chart = QWidget()
         self.placeholder_bar_chart.setStyleSheet('background-color: #F0F8FF')
 
@@ -264,7 +245,6 @@ class MainScreen(QWidget):
         charts_area_layout.addWidget(current_month_donut_chart, 0, 4, 1, 2)
 
         self.placeholder_bar_chart.setLayout(charts_area_layout)
-        print("End charts")
 
         
 
@@ -277,7 +257,6 @@ class MainScreen(QWidget):
 
     # change monthly budget (limit)
     def change_limit(self):
-        print("Change limit button clicked")
         self.limit_window.show()
 
     # FUNCTION AREA 2 methods 
@@ -372,7 +351,6 @@ class MainScreen(QWidget):
 
     # Should open a list of all transactions and allow user to put checkmark near some to add them to group
     def add_new_group(self):
-        print("Add New Group Button pressed")
         self.adding_new_group = AddGroupWindow(self.user_id)
         self.adding_new_group.show()
         

@@ -9,7 +9,6 @@ import pandas as pd
 """CONSTANTS"""
 #  Categories list for all categories view
 ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Transportation", "Groceries", "Utilities", "Eating Out", "Health", "Entertainment", "Subscriptions", "Sport", "Other"]
-
 # Expense types
 ALL_EXPENSE_TYPES = ["Credit", "Cash", "Foreign Currency"]
 
@@ -319,42 +318,38 @@ def get_groups_list(user_id):
 
 
 def get_top_10_category_expenses(user_id): 
-
     # Get the current month and year
-    today = datetime.now()
-    current_month = today.strftime('%Y-%m')
+    current_month = datetime.now().strftime("%Y-%m")
+    result = []
 
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-    
-    try:
-        cursor = sqliteConnection.cursor()
-        values = {'user_id' : user_id,
-                  'current_month' : current_month}
 
-        # SQL query to get group names and sum of amounts for the given user_id
-        query = """
-            SELECT category, SUM(amount) as total_sum
-            FROM expense
-            WHERE user_id = :user_id
-                AND date LIKE :current_month || '-%'
-            GROUP BY category
-            ORDER BY total_sum DESC
-            LIMIT 10;
+    try:
+        cursor = sqliteConnection.cursor() 
+
+        for category in ALL_POSSIBLE_CATEGORIES_LIST:
+            values = {'user_id': user_id,
+                    'category': category,
+                    'current_month': current_month}
+            query = """
+                SELECT IFNULL(SUM(amount), 0)
+                FROM expense
+                WHERE user_id = :user_id 
+                AND category = :category
+                AND strftime('%Y-%m', date) = :current_month
             """
-        cursor.execute(query, values)
-        results = cursor.fetchall()
-        # top_10_expenses = [(category, total_sum) for category, total_sum in results]
-        # print(top_10_expenses)
-        cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
-        return results
+            cursor.execute(query, values)
+            expense_sum = cursor.fetchone()[0]
+            result.append((category, expense_sum))
+    
+        result.sort(key=lambda x: x[1], reverse=True)  # Sort by expense_sum
+        return result
+
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
         if sqliteConnection:
-            sqliteConnection.close()
-
-
+            sqliteConnection.close()             
 
 
 # Add Expense after Add Expense button press
