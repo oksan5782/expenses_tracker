@@ -9,9 +9,10 @@ sys.path.append('../helpers')
 from helpers import add_expense_into_db, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES
 
 class AddExpenseWindow(QWidget):
-    def __init__(self, user_id):
+    def __init__(self, user_id, main_window):
         super().__init__()  
         self.user_id = user_id
+        self.main_window = main_window
         self.setWindowTitle("Add Expense")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -87,7 +88,6 @@ class AddExpenseWindow(QWidget):
 
 
     def add_expense(self, name, amount_line_edit, date, category, type):
-        # VALIDATE USER INPUT 
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
         sql_return_value = add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
@@ -109,7 +109,11 @@ class AddExpenseWindow(QWidget):
         if sql_return_value == 0:
             success_msg = QMessageBox.information(self, "Information", "Expense added")
             
-            # Repaint other window
-            # GO BACK TO MAIN WINDOW
+            # Repaint graph, categories view and balance windows
+            self.main_window.stacked_bar_chart.refresh_chart()
+            self.main_window.update_categories_area()
+            self.main_window.current_month_donut_chart.update_balance()
+
+            # Go back to main window
             self.close()
 

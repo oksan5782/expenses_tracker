@@ -15,9 +15,10 @@ sys.path.append('../helpers')
 from helpers import get_expenses_by_category, get_expenses_by_date_range, create_group, ALL_POSSIBLE_CATEGORIES_LIST 
 
 class AddGroupWindow(QMainWindow):
-    def __init__(self, user_id):  
+    def __init__(self, user_id, main_window):  
         super().__init__() 
         self.user_id = user_id
+        self.main_window = main_window
         self.new_group_data = []
         self.setWindowTitle("Create New Group")
         self.setStyleSheet('background-color: #F5FFFA')
@@ -296,7 +297,7 @@ class AddGroupWindow(QMainWindow):
                 self.table.setItem(i, 3, QTableWidgetItem(str(amount)))
 
                 # Checkbox to include a record into a group
-                checkbox = QCheckBox("Edit", self)
+                checkbox = QCheckBox("Add", self)
                 checkbox.setStyleSheet("background-color: #F9EBD1; border: none; border-radius: 5; padding: 5 0" )
                 self.table.setCellWidget(i, 4, checkbox)
             
@@ -346,6 +347,10 @@ class AddGroupWindow(QMainWindow):
             sql_return_value = create_group(self.user_id, self.group_name, selected_rows_data)
             # IF VALIDATION PASSED Flush the message 
             if sql_return_value == 0:
+
+                # Update main view
+                self.main_window.update_groups_area()
+
                 success_msg = QMessageBox.information(self, "Information", "Group created")
                 self.close()
 

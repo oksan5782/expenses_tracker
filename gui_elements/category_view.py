@@ -13,10 +13,11 @@ from helpers import get_expenses_by_category, edit_record
 
 
 class DisplayCategoryList(QMainWindow):
-    def __init__(self, user_id, name):
+    def __init__(self, user_id, name, main_window):
         super().__init__()
         self.category_title = name
         self.user_id = user_id
+        self.main_window = main_window
         self.setWindowTitle(f"Category {self.category_title}")
         self.setStyleSheet('background-color: #F5FFFA')
         self.create_table()
@@ -175,6 +176,11 @@ class DisplayCategoryList(QMainWindow):
             # IF VALIDATION PASSED Flush the message 
             if sql_return_value == 0:
                 success_msg = QMessageBox.information(self, "Information", "Expense updated")
+
+                # Repaint graph, categories view and balance windows
+                self.main_window.stacked_bar_chart.refresh_chart()
+                self.main_window.update_categories_area()
+                self.main_window.current_month_donut_chart.update_balance()
 
                 # Update table value
                 self.table_widget.update()

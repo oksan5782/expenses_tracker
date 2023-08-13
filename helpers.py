@@ -37,10 +37,15 @@ def get_last_6_months():
 
     return [date.strftime("%Y-%m") for date in last_6_months]
 
-    # today = datetime.today()
-    # last_6_months = [today - timedelta(days=30*i) for i in range(6)][::-1]
-    # return [date.strftime("%Y-%m") for date in last_6_months]
 
+
+def get_3_letters_for_last_6_month():
+        now = datetime.now()
+        result = [now.strftime("%B")[:3]]
+        for _ in range(0, 5):
+            now = now.replace(day=1) - timedelta(days=1)
+            result.append(now.strftime("%B")[:3])
+        return result
 
 # Convert SQL string of date into datetimr object
 def convert_to_date_time(date_string):

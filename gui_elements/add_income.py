@@ -10,9 +10,10 @@ from helpers import add_income_into_db
 
 
 class AddIncomeWindow(QWidget):
-    def __init__(self, user_id):
+    def __init__(self, user_id, main_window):
         super().__init__()  
         self.user_id = user_id
+        self.main_window = main_window
         self.setWindowTitle("Add Income")
         self.setStyleSheet('background-color: #F5FFFA')
 
@@ -66,6 +67,8 @@ class AddIncomeWindow(QWidget):
         if sql_return_value == 0:
             success_msg = QMessageBox.information(self, "Information", "Income value added")
             
+            # Update balance
+            self.main_window.current_month_donut_chart.update_balance()
             # GO BACK TO MAIN WINDOW
             self.close()
         

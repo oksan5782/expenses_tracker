@@ -11,10 +11,11 @@ from helpers import get_group_expenses, remove_record_from_the_group, edit_recor
 
 
 class DisplayGroupList(QMainWindow):
-    def __init__(self, user_id, name):
+    def __init__(self, user_id, name, main_window):
         super().__init__()
         self.group_name = name
         self.user_id = user_id
+        self.main_window = main_window
         self.setWindowTitle(f"Category {self.group_name}")
         self.setStyleSheet('background-color: #F5FFFA')
         self.create_table()
@@ -133,7 +134,10 @@ class DisplayGroupList(QMainWindow):
        
         # Flush message about what was removed
         if sql_return_value == 0:
-            success_msg = QMessageBox.information(self, "Information", "Records removed from the gro")
+            success_msg = QMessageBox.information(self, "Information", "Records removed from the group")
+
+            # Repaint group widget
+            self.main_window.update_groups_area()
 
             # Update Group view
             self.table_widget.update()
@@ -195,9 +199,11 @@ class DisplayGroupList(QMainWindow):
             if sql_return_value == 0:
                 success_msg = QMessageBox.information(self, "Information", "Record updated")
 
-                # Update table value
-                self.table_widget.update()
-
+                # Repaint graph, categories view and balance windows
+                self.main_window.stacked_bar_chart.refresh_chart()
+                self.main_window.update_categories_area()
+                self.main_window.update_groups_area()
+                self.main_window.current_month_donut_chart.update_balance()
 
             
             # Update table after removal of the item

@@ -7,8 +7,6 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout,
 from PyQt6.QtCharts import (QBarCategoryAxis, QStackedBarSeries, QBarSet, QChart, 
                             QChartView, QValueAxis, QPieSeries, QPieSlice)
 
-import datetime
-
 # GUI elements
 
 from gui_elements.view_balance import ViewBalanceWindow
@@ -38,7 +36,7 @@ class MainScreen(QWidget):
     # Create main layout 
     def set_ui(self):
         self.setStyleSheet('background-color: #F5FFFA')
-        main_layout = QGridLayout()
+        self.main_layout = QGridLayout()
 
         # Generate components
         self.generate_greeting_area()
@@ -47,14 +45,14 @@ class MainScreen(QWidget):
         self.generate_buttons_area()
         self.generate_groups_area()
 
-        # Add 5 FUNCTIONAL conmonets to the layout
-        main_layout.addWidget(self.greeting_with_calender, 0, 0, 1, 4)
-        main_layout.addWidget(self.placeholder_bar_chart, 1, 0, 3, 4)
-        main_layout.addWidget(self.placeholder_categories, 4, 0, 2, 4)
-        main_layout.addWidget(self.placeholder_add_buttons, 0, 4, 2, 2)
-        main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
+        # Add 5 FUNCTIONAL componets to the layout
+        self.main_layout.addWidget(self.greeting_with_calender, 0, 0, 1, 4)
+        self.main_layout.addWidget(self.placeholder_bar_chart, 1, 0, 3, 4)
+        self.main_layout.addWidget(self.placeholder_categories, 4, 0, 2, 4)
+        self.main_layout.addWidget(self.placeholder_add_buttons, 0, 4, 2, 2)
+        self.main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout)
 
 
 
@@ -129,6 +127,18 @@ class MainScreen(QWidget):
 
         # FUNCTIONAL AREA 3 - Groups section
     def generate_groups_area(self):
+        self.placeholder_groups = None
+        self.refresh_groups()
+
+    # Update groups content called from outer functions
+    def update_groups_area(self):
+        self.refresh_groups()
+        self.main_layout.removeWidget(self.placeholder_groups)
+        self.main_layout.addWidget(self.placeholder_groups, 2, 4, 4, 2)
+        self.setLayout(self.main_layout)
+
+    # Create groups view
+    def refresh_groups(self):
         self.placeholder_groups = QWidget()
         groups_layout = QVBoxLayout()
         groups_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -160,7 +170,7 @@ class MainScreen(QWidget):
                 button_group_name.clicked.connect(lambda x, i=i : self.group_button_press(group_list[i][0]))
 
                 # Label with amount spent
-                label_group_amount = QLabel(str(group_list[i][1]))
+                label_group_amount = QLabel(str(round(group_list[i][1], 2)))
                 label_group_amount.setFont(QFont('Futura', 16))
                 label_group_amount.setStyleSheet('background-color : #F0FFF0; font-weight: 550; border-radius : 5; padding: 5 0')
                 label_group_amount.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -180,8 +190,20 @@ class MainScreen(QWidget):
 
     # FUNCTIONAL AREA 4 - Categories section
     def generate_categories_area(self):
+        self.placeholder_categories = None
+        self.refresh_categories()
+
+    # Update categories content called from outer functions
+    def update_categories_area(self):
+        self.refresh_categories()
+        self.main_layout.removeWidget(self.placeholder_categories)
+        self.main_layout.addWidget(self.placeholder_categories, 4, 0, 2, 4)
+        self.setLayout(self.main_layout)
+
+
+    def refresh_categories(self):   
         self.placeholder_categories = QWidget()
-        categories_grid_layout = QGridLayout()
+        self.categories_grid_layout = QGridLayout()
 
         # Add title to Categories section
         categories_title_layout = QHBoxLayout()
@@ -192,10 +214,10 @@ class MainScreen(QWidget):
         open_all_categories_button = StyledPushButton("All Categories", 150, "#DEB887", 16)
         open_all_categories_button.clicked.connect(self.open_all_categories)
 
-        # Add categories label andd button to the view
+        # Add categories label and button to the view
         categories_title_layout.addWidget(categories_title)
         categories_title_layout.addWidget(open_all_categories_button)
-        categories_grid_layout.addLayout(categories_title_layout, 0, 0, 1, 5)
+        self.categories_grid_layout.addLayout(categories_title_layout, 0, 0, 1, 5)
 
         # Get top 10 categories in user's expenses (tuple: name, spent this  month)
         TOP_CATEGORIES_LIST = helpers.get_top_10_category_expenses(self.user_id)
@@ -218,15 +240,16 @@ class MainScreen(QWidget):
                 # Add items to category box and align them
                 single_category_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 single_category_layout.addWidget(category_item_button)
-                categories_grid_layout.addLayout(single_category_layout, (i// 5) + 1, i % 5, 1, 1)
+                self.categories_grid_layout.addLayout(single_category_layout, (i// 5) + 1, i % 5, 1, 1)
 
         else:
             no_categories_label = QLabel("No expenses in categories this month")
             no_categories_label.setFont(QFont('Futura', 15))
             no_categories_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            categories_grid_layout.addWidget(no_categories_label, 1, 0, 1, 5)
+            self.categories_grid_layout.addWidget(no_categories_label, 1, 0, 1, 5)
+        
+        self.placeholder_categories.setLayout(self.categories_grid_layout)
 
-        self.placeholder_categories.setLayout(categories_grid_layout)
 
 
     # FUNCTIONAL AREA 5 - Bar chart and pie chart section
@@ -236,13 +259,13 @@ class MainScreen(QWidget):
 
         charts_area_layout = QGridLayout()
 
-        # Create stacked bar chart with excpenses for the last 6 months
+        # Create stacked bar chart with expenses for the last 6 months
         self.stacked_bar_chart = StackedBarChart(self.user_id)
         charts_area_layout.addWidget(self.stacked_bar_chart, 0, 0, 1, 4)
 
         # Create donut chart with monthly limit
-        current_month_donut_chart = BalanceChart(self.user_id)
-        charts_area_layout.addWidget(current_month_donut_chart, 0, 4, 1, 2)
+        self.current_month_donut_chart = BalanceChart(self.user_id)
+        charts_area_layout.addWidget(self.current_month_donut_chart, 0, 4, 1, 2)
 
         self.placeholder_bar_chart.setLayout(charts_area_layout)
 
@@ -259,17 +282,18 @@ class MainScreen(QWidget):
     def change_limit(self):
         self.limit_window.show()
 
+
     # FUNCTION AREA 2 methods 
 
     # Open a window with add income view
     def open_add_income(self):
-        self.add_income_window = AddIncomeWindow(self.user_id)
+        self.add_income_window = AddIncomeWindow(self.user_id, self)
         self.add_income_window.show()
 
 
     # Open a window with add expense view
     def open_add_expense(self):
-        self.add_expense_window = AddExpenseWindow(self.user_id)
+        self.add_expense_window = AddExpenseWindow(self.user_id, self)
         self.add_expense_window.show()
 
 
@@ -303,6 +327,13 @@ class MainScreen(QWidget):
 
             # Flush success message
             if sql_return_value == 0: 
+                # Repaint other window
+                self.stacked_bar_chart.refresh_chart()
+                self.update_categories_area()
+                self.current_month_donut_chart.update_balance()
+
+
+                # Display successful upload message
                 upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
 
 
@@ -336,6 +367,12 @@ class MainScreen(QWidget):
 
             # Flush success message
             if sql_return_value == 0: 
+                # Repaint other window
+                self.stacked_bar_chart.refresh_chart()
+                self.update_categories_area()
+                self.current_month_donut_chart.update_balance()
+
+                # Display successful upload message
                 upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
 
   
@@ -345,13 +382,13 @@ class MainScreen(QWidget):
     # Should open a window with selection of the expences related to some group
     def group_button_press(self, name):        
         # Create a group view instance
-        self.single_group_view = DisplayGroupList(self.user_id, name)
+        self.single_group_view = DisplayGroupList(self.user_id, name, self)
         # Display newly created instance
         self.single_group_view.show()
 
     # Should open a list of all transactions and allow user to put checkmark near some to add them to group
     def add_new_group(self):
-        self.adding_new_group = AddGroupWindow(self.user_id)
+        self.adding_new_group = AddGroupWindow(self.user_id, self)
         self.adding_new_group.show()
         
 
@@ -362,7 +399,7 @@ class MainScreen(QWidget):
         print(f"{name} was pressed")
 
         # Create an instanse of Category view to fill it with data on the button click
-        self.single_category_view = DisplayCategoryList(self.user_id, name)
+        self.single_category_view = DisplayCategoryList(self.user_id, name, self)
 
         # Display newly created instance
         self.single_category_view.show()
@@ -422,16 +459,28 @@ class StackedBarChart(QWidget):
         self.init_chart_ui()
 
     def init_chart_ui(self):
-        RECENT_EXPENCES = helpers.get_recent_expenses(self.user_id)
-        
-        bar_chart_layout = QVBoxLayout()
+        self.bar_chart_layout = QVBoxLayout()
+        self.chart_view = None  # Store the chart view widget
 
-        if RECENT_EXPENCES:
+        self.refresh_chart()  # Initial chart creation or refresh if needed
+
+        self.setLayout(self.bar_chart_layout)
+
+    def refresh_chart(self):
+
+        RECENT_EXPENSES = helpers.get_recent_expenses(self.user_id)
+
+        if self.chart_view:
+            # Deleting
+            self.bar_chart_layout.removeWidget(self.chart_view)
+            self.chart_view.deleteLater()  # Delete the previous chart view
+        
+        if RECENT_EXPENSES:
             self.series = QStackedBarSeries()
             # Input the list of values in a dictionary of top 5 expence categories for the last 6 months into series
-            for key in RECENT_EXPENCES:
+            for key in RECENT_EXPENSES:
                 self.key = QBarSet(key)
-                self.key.append(RECENT_EXPENCES[key])
+                self.key.append(RECENT_EXPENSES[key])
                 self.series.append(self.key)
 
             # Add series to the stacked bar chart
@@ -440,7 +489,7 @@ class StackedBarChart(QWidget):
             self.chart.setTitle("Last 6 month")
 
             # Get 3-letter names of the last 6 month ans set them as X axis
-            self.categories = self.get_last_6_month()
+            self.categories = helpers.get_3_letters_for_last_6_month()
             self.axis_x = QBarCategoryAxis()
             self.axis_x.append(self.categories)
             self.chart.addAxis(self.axis_x, Qt.AlignmentFlag.AlignBottom)
@@ -461,27 +510,15 @@ class StackedBarChart(QWidget):
             # Display the chart
             self.chart_view = QChartView(self.chart)
             self.chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
-            bar_chart_layout.addWidget(self.chart_view)
+            self.bar_chart_layout.addWidget(self.chart_view)
         
         else:  
             no_results_label = QLabel("No date in for the last 6 month")
             no_results_label.setFont(QFont('Futura', 15))
             no_results_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            bar_chart_layout.addWidget(no_results_label)
-    
-        self.setLayout(bar_chart_layout)
-        # self.chart_view.update()
+            self.bar_chart_layout.addWidget(no_results_label)
 
 
-    # Get names of the last 6 months 
-    def get_last_6_month(self):
-        now = datetime.datetime.now()
-        result = [now.strftime("%B")[:3]]
-        for _ in range(0, 5):
-            now = now.replace(day=1) - datetime.timedelta(days=1)
-            result.append(now.strftime("%B")[:3])
-        return result
-        
 
 # Donut chart with the expences made on current month
 class BalanceChart(QWidget):
@@ -519,6 +556,10 @@ class BalanceChart(QWidget):
         
         donut_chart_layout.addWidget(self.chart_view)
         self.setLayout(donut_chart_layout)
+    
+    def update_balance(self):
+        # Update chart when values added from other functions
+        print('Updating Balance TODO')
 
 
  # Style buttons to avoit repeated style modifications       
