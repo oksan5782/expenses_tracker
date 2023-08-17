@@ -4,6 +4,7 @@
 from datetime import datetime, timedelta
 from collections import defaultdict
 import pandas as pd
+import bcrypt 
 
 
 """CONSTANTS"""
@@ -808,31 +809,119 @@ def get_group_expenses(user_id, group_name):
 
 # Log In
 def log_in_check(username, password):
-    print("Log In " + username + " " + password)
-    # VALIDATE BOTH INPUT FIELDS
-    # CONVERT PASSWORD TO HASH
-    # LOOK FOR USERNAME IN THE USERS TABLE
-    # SELECT PASSWORD HASH AND CHECK IF IT MATCHES
-    # Return user_id if user found
-    # Return 0 if user not found or there were errors (could be several error codes to flush different messages)
+    message = ""
+    # Validate both input fields if they are not empty
+    if username == "":
+        message = "Missing username"
+        return (False, message, 0)
+    
+    if password == "":
+        message = "Missing password"
+        return (False, message, 0)
+    
+    # Search for user name in a table
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
 
-    # Placeholder function (TO BE REMOVED)
-    if username == "me" and password == "123":
-        return 1
-    else:
-        return 0
+        # Get group_id
+        check_query = "SELECT id, hash FROM user WHERE username = ?;"
+        cursor.execute(check_query, (username,))
+        result_tuple = cursor.fetchone()
+        cursor.close()
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+    # If it does not exist - return 
+    if not result_tuple:
+        message = "No user found"
+        return (False, message, 0)
+    
+    # Format hash
+    password_bytes = password.encode('utf-8')
+
+    # Check if password hash matches username_id record
+    if bcrypt.checkpw(password_bytes, result_tuple[1]):
+        return (True, message, result_tuple[0])
+
+    # If password hash does not match 
+    message = "Password does not match"
+    return (False, message, 0)
+
         
 
 # Register new user
 def register_user(username, password, password_confirmation):
     print("Register " + username + " " + str(password) + " " + str(password_confirmation))
-       
-    # VALIDATE INPUT FIELDS (check for existing username)
-    # INSERT USER INTO USERS TABLE
+    
+    message = ""
+    # Validate input fields
+    if username == "":
+        message = "Missing username"
+        return (False, message)
+    
+    if password == "":
+        message = "Missing password"
+        return (False, message)
+    
+    if password_confirmation == "":
+        message = "Missing password confirmation"
+        return (False, message)
+    
+    if password != password_confirmation:
+        message = "Passwords do not match"
+        return (False, message)
 
-    # PlaceHolder function
-    passed = True
-    return passed
+    # Check if username already exists
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
 
+        # Get group_id
+        check_query = "SELECT id FROM user WHERE username = ?;"
+        cursor.execute(check_query, (username,))
+        result = cursor.fetchone()
+        cursor.close()
 
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
 
+    if result:
+        message = "Username already exists"
+        return (False, message)
+
+    # Generate salt and hash the password
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+
+    # Insert user into users table
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
+
+        values = { 'hash' : hashed_password,
+                   'username' : username}
+        query = """INSERT INTO user
+                (hash, username)
+                VALUES (:hash, :username)"""
+        cursor.execute(query, values)
+        sqliteConnection.commit()
+        cursor.close()
+        message = "New user added"
+        return (True, message)
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+    return 1

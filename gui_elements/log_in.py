@@ -54,18 +54,19 @@ class LogInWindow(QWidget):
 
 
     def log_in_user(self, username, password):
-        user_id = log_in_check(username, password)
 
-        if user_id > 0:            
+        result, message, user_id = log_in_check(username, password)
+
+        if not result:
+            no_login_possible = QMessageBox.information(self, "Information", message)
+            
+        else:
             # Create main window object 
-            main_window = MainScreen(1)
+            main_window = MainScreen(user_id)
             main_window.show()
             self.close()
-        
-        # Negative user_id means error
-        else:
-            no_user_found_msg = QMessageBox.information(self, "Information", "No user found")
-
+            
+    
 
     def register_user(self):
         print("Register")

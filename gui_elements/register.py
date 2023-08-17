@@ -40,7 +40,7 @@ class RegisterWindow(QWidget):
 
         # Register button
         log_in_button = QPushButton("Register")
-        log_in_button.clicked.connect(lambda : self.register_user(self.username_line_edit.text(), self.password_line_edit.text(), self.confirm_password_line_edit.text()))
+        log_in_button.clicked.connect(lambda : self.try_register_user(self.username_line_edit.text(), self.password_line_edit.text(), self.confirm_password_line_edit.text()))
         log_in_button.setStyleSheet('background-color : #66CDAA; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addRow(log_in_button)
 
@@ -54,18 +54,21 @@ class RegisterWindow(QWidget):
         self.setLayout(layout)
 
     def try_register_user(self, username, password, password_confirmation):
-        # Try to register user and flush message boxes with error codes
 
-        # If check is passed
-        if register_user(username, password, password_confirmation):
+        # Try to register user and flush message boxes with error codes
+        result, message = register_user(username, password, password_confirmation)
+        
+        # If registration was not succesful
+        if not result:
+            no_register_possible = QMessageBox.information(self, "Information", message)
             
+        else:
             # Flush confirmation message 
+            registration_success_msg = QMessageBox.information(self, "Information", message)
             
             # OPEN MAIN WINDOW
             self.back_to_login()
-        else:
-            no_register_possible = QMessageBox.information(self, "Information", "No user found")
-
+            
 
     def back_to_login(self):
         self.close()
