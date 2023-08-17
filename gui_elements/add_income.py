@@ -53,22 +53,15 @@ class AddIncomeWindow(QWidget):
         # VALIDATE USER INPUT 
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
-        sql_return_value = add_income_into_db(self.user_id, date, amount_line_edit)
+        result, message = add_income_into_db(self.user_id, date, amount_line_edit)
 
-        # Error message for invalid date
-        if sql_return_value == 1:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
-
-        # Error message for invalid amount input 
-        if sql_return_value == 3:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
-
-        # IF VALIDATION PASSED Flush change message
-        if sql_return_value == 0:
+        if not result:
+            cannot_add_income_msg = QMessageBox.information(self, "Information", message)
+            
+        else:
             success_msg = QMessageBox.information(self, "Information", "Income value added")
             
             # Update balance
             self.main_window.current_month_donut_chart.update_balance()
             # GO BACK TO MAIN WINDOW
             self.close()
-        

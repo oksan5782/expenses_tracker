@@ -315,26 +315,20 @@ class MainScreen(QWidget):
         
         # Process the file
         else:
-            sql_return_value = helpers.upload_expense_csv_discover(self.user_id, file_dialog[0])
+            result, message = helpers.upload_expense_csv_discover(self.user_id, file_dialog[0])
             
-            # File cannot be uploaded - not matching Discover formatting
-            if sql_return_value == 1: 
-                wrong_format_msg = QMessageBox.information(self, "Information", "The file does not match Discover format")
+            # If file cannot be uploaded
+            if not result:
+                cannot_add_msg = QMessageBox.information(self, "Information", message)
 
-            # File is already added to db
-            if sql_return_value == 2: 
-                file_already_uploaded_msg = QMessageBox.information(self, "Information", "The file content was already added to the database")
-
-            # Flush success message
-            if sql_return_value == 0: 
+            else:            
                 # Repaint other window
                 self.stacked_bar_chart.refresh_chart()
                 self.update_categories_area()
                 self.current_month_donut_chart.update_balance()
 
-
                 # Display successful upload message
-                upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
+                upload_complete_msg = QMessageBox.information(self, "Information", message)
 
 
     # Open a window with upload file view for Chase
@@ -355,27 +349,20 @@ class MainScreen(QWidget):
         
         # Process the file
         else:
-            sql_return_value = helpers.upload_expense_csv_chase(self.user_id, file_dialog[0])
+            result, message = helpers.upload_expense_csv_chase(self.user_id, file_dialog[0])
             
-            # File cannot be uploaded - not matching Chase formatting
-            if sql_return_value == 1: 
-                wrong_format_msg = QMessageBox.information(self, "Information", "The file does not match Chase format")
+            # If file cannot be uploaded
+            if not result:
+                cannot_add_msg = QMessageBox.information(self, "Information", message)
 
-            # File is already added to db
-            if sql_return_value == 2: 
-                file_already_uploaded_msg = QMessageBox.information(self, "Information", "The file content was already added to the database")
-
-            # Flush success message
-            if sql_return_value == 0: 
-                # Repaint other window
+            else:   
                 self.stacked_bar_chart.refresh_chart()
                 self.update_categories_area()
                 self.current_month_donut_chart.update_balance()
 
                 # Display successful upload message
-                upload_complete_msg = QMessageBox.information(self, "Information", "The file has been uploaded")
+                upload_complete_msg = QMessageBox.information(self, "Information", message)
 
-  
     
     # FUNCTION AREA 3 methods 
 

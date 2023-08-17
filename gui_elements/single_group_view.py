@@ -133,7 +133,7 @@ class DisplayGroupList(QMainWindow):
         sql_return_value = remove_record_from_the_group(self.user_id, row_data[0], row_data[1], row_data[2], row_data[3])
        
         # Flush message about what was removed
-        if sql_return_value == 0:
+        if sql_return_value:
             success_msg = QMessageBox.information(self, "Information", "Records removed from the group")
 
             # Repaint group widget
@@ -177,27 +177,14 @@ class DisplayGroupList(QMainWindow):
             edit_button.setText("Edit")
 
             # Update record in DB 
-            sql_return_value = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
+            result, message = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
 
-             # Error message for invalid date
-            if sql_return_value == 1:
-                invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
-
-            # Error message for invalid name input
-            if sql_return_value == 2:
-                invalid_name_msg = QMessageBox.warning(self, "Information", "Missing name")
-
-            # Error message for invalid amount input 
-            if sql_return_value == 3:
-                invalid_amount_msg = QMessageBox.warning(self, "Information", "Invalid amount")
-
-            # Error message for invalid category
-            if sql_return_value == 4:
-                invalid_category_msg = QMessageBox.warning(self, "Information", "Invalid category. Try capitalizing the name or use Other")
-
-            # IF VALIDATION PASSED Flush the message 
-            if sql_return_value == 0:
-                success_msg = QMessageBox.information(self, "Information", "Record updated")
+            if not result:
+                cannot_add_msg = QMessageBox.information(self, "Information", message)
+            
+            else:
+            # If the validation passed 
+                success_msg = QMessageBox.information(self, "Information", message)
 
                 # Repaint graph, categories view and balance windows
                 self.main_window.stacked_bar_chart.refresh_chart()
@@ -208,6 +195,4 @@ class DisplayGroupList(QMainWindow):
             
             # Update table after removal of the item
             self.table_widget.update()
-
-
 

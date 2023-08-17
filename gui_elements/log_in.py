@@ -58,7 +58,7 @@ class LogInWindow(QWidget):
         result, message, user_id = log_in_check(username, password)
 
         if not result:
-            no_login_possible = QMessageBox.information(self, "Information", message)
+            no_login_possible_msg = QMessageBox.information(self, "Information", message)
             
         else:
             # Create main window object 

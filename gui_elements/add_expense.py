@@ -90,24 +90,14 @@ class AddExpenseWindow(QWidget):
     def add_expense(self, name, amount_line_edit, date, category, type):
 
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
-        sql_return_value = add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
+        result, message = add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
 
-        # Error message for invalid date
-        if sql_return_value == 1:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid Date Format. Please use YYYY-MM-DD")
-
-        # Error message for invalid name input
-        if sql_return_value == 2:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Missing name")
-
-        # Error message for invalid amount input 
-        if sql_return_value == 3:
-            invalid_date_msg = QMessageBox.warning(self, "Information", "Invalid amount")
-
-
-        # IF VALIDATION PASSED Flush the message 
-        if sql_return_value == 0:
-            success_msg = QMessageBox.information(self, "Information", "Expense added")
+        if not result:
+            cannot_add_msg = QMessageBox.information(self, "Information", message)
+            
+        else:
+            # IF VALIDATION PASSED Flush the message 
+            success_msg = QMessageBox.information(self, "Information", message)
             
             # Repaint graph, categories view and balance windows
             self.main_window.stacked_bar_chart.refresh_chart()

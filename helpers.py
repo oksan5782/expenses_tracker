@@ -113,10 +113,13 @@ def get_recent_expenses(user_id):
         sum_query = """
             SELECT category, strftime('%Y-%m', date) AS month, SUM(amount) AS total_amount
             FROM expense
-            WHERE strftime('%Y-%m', date) IN ({}) AND category IN ({})
+            WHERE user_id = {}
+                AND strftime('%Y-%m', date) IN ({}) 
+                AND category IN ({})
             GROUP BY category, month
             ORDER BY category, month;
-        """.format(', '.join(['"{}"'.format(date) for date in last_6_months]),
+        """.format(user_id,
+                   ', '.join(['"{}"'.format(date) for date in last_6_months]),
                    ', '.join(['"{}"'.format(category) for category in top_6_categories]))
 
         cursor.execute(sum_query)
@@ -277,8 +280,6 @@ def create_group(user_id, group_name, list_of_group_records):
         # Execute the update query for each dictionary in the list
         for data_dict in data_list:
             cursor.execute(update_query, data_dict)
-            # Commit new group creation
-            # sqliteConnection.commit()
 
         # Commit the changes and close the connection
         sqliteConnection.commit()
@@ -361,15 +362,21 @@ def get_top_10_category_expenses(user_id):
 # Add Expense after Add Expense button press
 def add_expense_into_db(user_id, type, name, date, category, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-    # Validate date format
-    if not is_valid_datetime_format(date):
-        return 1
+    
     # Check if name is not missing
     if name == "":
-        return 2
-    # check if amount is aa positive numeric value
+        message = "Missing name"
+        return (False, message)
+    
+    # Validate date format
+    if not is_valid_datetime_format(date):
+        message = "Invalid Date Format. Please use YYYY-MM-DD"
+        return (False, message)
+    
+    # Check if amount is aa positive numeric value
     if not is_valid_numeral(amount):
-        return 3
+        message = "Invalid amount"
+        return (False, message)
     try:
         cursor = sqliteConnection.cursor()
         values = { 'transaction_type' : type,
@@ -386,7 +393,8 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
         sqliteConnection.commit()
         cursor.close()
         # Finally will be executed after 'finally' statements, so return can be made
-        return 0
+        message = "Expense added"
+        return (True, message)
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
@@ -477,7 +485,8 @@ def upload_expense_csv_chase(user_id, file):
 
         # If latest record is already added, all of the table content is already uploaded
         if check_first_row:
-            return 2
+            message = "The file content was already added to the database"
+            return (False, message)
     
         # Check if last record is uploaded
         last_row_index = df.tail(1).index[0]
@@ -501,9 +510,11 @@ def upload_expense_csv_chase(user_id, file):
         # Upload all table values 
         for index, row in df.iterrows():
             add_expense_into_db(user_id, 'Credit', row['Description'], row['Transaction Date'], row['Category'], row['Amount'])
-        return 0
+        message = "The file has been uploaded"
+        return (True, message)
     except (IndexError, TypeError, NameError, ValueError, KeyError):
-        return 1
+        message = "The file does not match Chase format"
+        return (False, message)
 
 
 # Upload Discover csv
@@ -558,7 +569,8 @@ def upload_expense_csv_discover(user_id, file):
 
         # If latest record is already added, all of the table content is already uploaded
         if check_first_row:
-            return 2
+            message = "The file content was already added to the database"
+            return (False, message)
 
         # Check if last record is uploaded
         last_row_index = df.tail(1).index[0]
@@ -582,23 +594,26 @@ def upload_expense_csv_discover(user_id, file):
         # Upload all table values 
         for index, row in df.iterrows():
            add_expense_into_db(user_id, 'Credit', row['Description'], row['Trans. Date'], row['Category'], row['Amount'])
-        return 0
+        message = "The file has been uploaded"
+        return (True, message)
     except (IndexError, TypeError, NameError, ValueError, KeyError):
-        return 1
+        message = "The file does not match Discover format"
+        return (False, message)
 
 
 
 # Add income after Add Income button press
 def add_income_into_db(user_id, date, amount):
-    print("Adding income into the database")
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
     # Validate date format
     if not is_valid_datetime_format(date):
-        return 1
-    # check if amount is aa positive numeric value
+        message = "Invalid Date Format. Please use YYYY-MM-DD"
+        return (False, message)
+    # CCheck if amount is a positive numeric value
     if not is_valid_numeral(amount):
-        return 3
+        message = "Invalid amount"
+        return (False, message)
     try:
         cursor = sqliteConnection.cursor()
         print("Database created and Successfully Connected to SQLite")
@@ -612,7 +627,8 @@ def add_income_into_db(user_id, date, amount):
         sqliteConnection.commit()
         cursor.close()
         # Finally will be executed after 'finally' statements, so return can be made
-        return 0
+        message = "Income value added"
+        return (True, message)
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
@@ -702,7 +718,7 @@ def remove_record_from_the_group(user_id, expense_name, category, date, amount):
         cursor.execute(update_query, values)
         sqliteConnection.commit()
         cursor.close()
-        return 0 
+        return True
 
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -730,16 +746,20 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
 
     # Validate date format
     if not is_valid_datetime_format(values['new_date']):
-        return 1
+        message = "Invalid Date Format. Please use YYYY-MM-DD"
+        return (False, message)
     # Check if name is not missing
     if values['new_name'] == "":
-        return 2
+        message = "Missing name"
+        return (False, message)
     # check if amount is aa positive numeric value
     if not is_valid_numeral(values['new_amount']):
-        return 3
+        message = "Invalid amount"
+        return (False, message)
     # check if category is among the ones available
     if values['new_category'] not in ALL_POSSIBLE_CATEGORIES_LIST:
-        return 4
+        message = "Invalid category. Try capitalizing the name or use Other"
+        return (False, message)
 
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -758,7 +778,8 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
         sqliteConnection.commit()
         cursor.close()
         # Finally will be executed after 'finally' statements, so return can be made
-        return 0
+        message = "Expense updated"
+        return (True, message)
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
@@ -809,7 +830,6 @@ def get_group_expenses(user_id, group_name):
 
 # Log In
 def log_in_check(username, password):
-    message = ""
     # Validate both input fields if they are not empty
     if username == "":
         message = "Missing username"
@@ -846,7 +866,7 @@ def log_in_check(username, password):
 
     # Check if password hash matches username_id record
     if bcrypt.checkpw(password_bytes, result_tuple[1]):
-        return (True, message, result_tuple[0])
+        return (True, "", result_tuple[0])
 
     # If password hash does not match 
     message = "Password does not match"
@@ -855,10 +875,7 @@ def log_in_check(username, password):
         
 
 # Register new user
-def register_user(username, password, password_confirmation):
-    print("Register " + username + " " + str(password) + " " + str(password_confirmation))
-    
-    message = ""
+def register_user(username, password, password_confirmation):    
     # Validate input fields
     if username == "":
         message = "Missing username"
