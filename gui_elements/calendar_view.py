@@ -78,7 +78,6 @@ class CustomCalendarWidget(QCalendarWidget):
         sum_expenses = get_sum_expenses_by_date(self.user_id, date_str)
         if sum_expenses:
             sum_expenses = round(sum_expenses, 2)
-            print(sum_expenses)
         if not sum_expenses:
             sum_expenses = 0
 

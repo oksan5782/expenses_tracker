@@ -98,21 +98,21 @@ class MainScreen(QWidget):
         add_income_expence_layout = QVBoxLayout()
 
         # Add Income button
-        add_income_button = StyledPushButton("Add Income", 150, "#E6E6FA", 14)
+        add_income_button = StyledPushButton("Add Income", 160, "#E6E6FA", 15)
         add_income_button.clicked.connect(self.open_add_income)
         self.add_income_window = None
 
         # Add Expense Button
-        add_expence_button = StyledPushButton("Add Expense", 150, "#B2CDD6", 14)
+        add_expence_button = StyledPushButton("Add Expense", 160, "#B2CDD6", 15)
         add_expence_button.clicked.connect(self.open_add_expense)
         self.add_expense_window = None
     
         # Upload Chase Button
-        upload_chase_button = StyledPushButton("Upload Chase .csv", 150, "#B2CDD6", 14)
+        upload_chase_button = AutoShrinkButton("Upload Chase .csv", 160, "#B2CDD6")
         upload_chase_button.clicked.connect(self.open_upload_expense_chase)
 
         # Upload Discover Button 
-        upload_discover_button = StyledPushButton("Upload Discover .csv", 150, "#B2CDD6", 14)
+        upload_discover_button = AutoShrinkButton("Upload Discover .csv", 160, "#B2CDD6")
         upload_discover_button.clicked.connect(self.open_upload_expense_discover)
 
         # Insert buttons to the layout
@@ -299,7 +299,6 @@ class MainScreen(QWidget):
 
     # Open a window with upload file view for Chase
     def open_upload_expense_discover(self):
-        print("Upload expense Button clicked")
 
         # Use QFileDialog to open a window to select a file
         file_filter = "Text Files (*.csv)"
@@ -333,7 +332,6 @@ class MainScreen(QWidget):
 
     # Open a window with upload file view for Chase
     def open_upload_expense_chase(self):
-        print("Upload expense Button clicked")
 
         # Use QFileDialog to open a window to select a file
         file_filter = "Text Files (*.csv)"
@@ -383,7 +381,6 @@ class MainScreen(QWidget):
       
     # Should open a window with selection of the expences related to some category
     def category_button_press(self, name):
-        print(f"{name} was pressed")
 
         # Create an instanse of Category view to fill it with data on the button click
         self.single_category_view = DisplayCategoryList(self.user_id, name, self)
@@ -400,8 +397,6 @@ class MainScreen(QWidget):
 
 
     def open_all_categories(self):
-        print("View All Categories button pressed")
-
         # View the list of all categories
         self.list_all_categories_widget = QWidget()
         all_cat_layout = QFormLayout()
@@ -448,7 +443,7 @@ class StackedBarChart(QWidget):
     def init_chart_ui(self):
         self.bar_chart_layout = QVBoxLayout()
         self.chart_view = None  # Store the chart view widget
-
+        self.no_results_label = None
         self.refresh_chart()  # Initial chart creation or refresh if needed
 
         self.setLayout(self.bar_chart_layout)
@@ -456,6 +451,11 @@ class StackedBarChart(QWidget):
     def refresh_chart(self):
 
         RECENT_EXPENSES = helpers.get_recent_expenses(self.user_id)
+
+        # Remove No results window, if any
+        if self.no_results_label:
+            self.bar_chart_layout.removeWidget(self.no_results_label)
+            self.no_results_label.deleteLater()
 
         if self.chart_view:
             # Deleting
@@ -499,11 +499,12 @@ class StackedBarChart(QWidget):
             self.chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
             self.bar_chart_layout.addWidget(self.chart_view)
         
-        else:  
-            no_results_label = QLabel("No date in for the last 6 month")
-            no_results_label.setFont(QFont('Futura', 15))
-            no_results_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            self.bar_chart_layout.addWidget(no_results_label)
+        else:
+            print('No result')
+            self.no_results_label = QLabel("No data in for the last 6 month")
+            self.no_results_label.setFont(QFont('Futura', 15))
+            self.no_results_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            self.bar_chart_layout.addWidget(self.no_results_label)
 
 
 
@@ -566,8 +567,9 @@ class AutoShrinkButton(QPushButton):
 
     def __init__(self, text, width, color):
         super().__init__(text)
-        self.original_font = self.font()
-        self.setFontSize(self.DEFAULT_FONT_SIZE)
+        # self.original_font = self.font()
+        self.setFont(QFont("Futura", self.DEFAULT_FONT_SIZE))
+        # self.setFontSize(self.DEFAULT_FONT_SIZE)
         self.setFixedWidth(width)
         self.setStyleSheet(f"background-color: {color}; font-weight: 550; border: none; border-radius: 5; padding: 5 0" )
         self.update_font_size()

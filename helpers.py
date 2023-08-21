@@ -11,7 +11,7 @@ import bcrypt
 #  Categories list for all categories view
 ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Transportation", "Groceries", "Utilities", "Eating Out", "Health", "Entertainment", "Subscriptions", "Sport", "Other"]
 # Expense types
-ALL_EXPENSE_TYPES = ["Credit", "Cash", "Foreign Currency"]
+ALL_EXPENSE_TYPES = ["Credit", "Cash", "Check", "Foreign Currency"]
 
 
 # DATETIME ONLY FUNCTIONS 
@@ -46,6 +46,7 @@ def get_3_letters_for_last_6_month():
         for _ in range(0, 5):
             now = now.replace(day=1) - timedelta(days=1)
             result.append(now.strftime("%B")[:3])
+        result.reverse()
         return result
 
 # Convert SQL string of date into datetimr object
@@ -107,7 +108,7 @@ def get_recent_expenses(user_id):
 
         # Get the date range for the last 6 months and change its order
         last_6_months = get_last_6_months()
-        last_6_months.reverse()
+        # last_6_months.reverse()
 
         # SQL query to get the sum of "amount" grouped by each month and each category
         sum_query = """
@@ -124,6 +125,9 @@ def get_recent_expenses(user_id):
 
         cursor.execute(sum_query)
         sums_data = cursor.fetchall()
+        cursor.close()
+        if not sums_data:
+            return None
 
         # Organize the results in a dictionary format
         result_dict = {}
@@ -133,7 +137,6 @@ def get_recent_expenses(user_id):
         for category, month, total_amount in sums_data:
             result_dict[category][last_6_months.index(month)] = total_amount
 
-        cursor.close()
         return result_dict
  
     except sqlite3.Error as error:
