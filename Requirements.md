@@ -1,10 +1,10 @@
 '''
 App to organize expenses
-     -read excel file downloaded from credit card websites
+     -read excel/csv file downloaded from credit card websites
      -parse excel for category of expenses
         -allow user to input key words into categories OR use dictionary of synonyms to try and capture similar labeling
     -categorize all expenses, order by date time
-        -separate views for year, month, week
+        -separate views for year, month
     -total sums for year, month, week (overall expenses)
         -option to see overall expenses based on category
         -option to add income and check net balance
@@ -19,13 +19,13 @@ GUI Notes
 Requirements:
 x.x - App shall help user organize and track expenses
     1.0 - App shall read and organize data
-        1.1 - App shall read excel files that user uploads in a format downloaded from credit card websites
+        1.1 - App shall read excel/csv files that user uploads in a format downloaded from credit card websites
         1.2 - App shall parse excel file for category of expenses, date, time, and name of item
         1.3 - App shall categorize all expenses and order by date time
-        1.4 - App shall calculate expenses for year, month, week
-        1.5 - App shall read user input and combine with excel inputs
+        1.4 - App shall calculate expenses for year, month
+        1.5 - App shall read user input and combine with excel/csv inputs
     2.0 - App shall have a freindly user interface
-        2.1 - App shall have different views for year, month, week
+        2.1 - App shall have different views for year, month
         2.2 - Main interface shall be simple and not over crowded
         2.3 - Any buttons for user input shall be clear on the function
         2.4 - App shall show all data (sums of expenses) in a clear and consice format
