@@ -33,6 +33,10 @@ class RegisterWindow(QWidget):
         self.password_line_edit = QLineEdit()
         self.confirm_password_line_edit = QLineEdit()
 
+        # Set the hidden mode for passwords
+        self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password) 
+        self.confirm_password_line_edit.setEchoMode(QLineEdit.EchoMode.Password) 
+
         # Insert labels and line edits into layout
         layout.addRow(label_username, self.username_line_edit)
         layout.addRow(label_password, self.password_line_edit)

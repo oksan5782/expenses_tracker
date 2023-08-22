@@ -33,6 +33,8 @@ class LogInWindow(QWidget):
         # QLine edits to enter input
         self.username_line_edit = QLineEdit()
         self.password_line_edit = QLineEdit()
+        # Make password field in echo mode - display *
+        self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)  
 
         # Insert labels and line edits into layout
         layout.addRow(label_username, self.username_line_edit)
@@ -69,8 +71,6 @@ class LogInWindow(QWidget):
     
 
     def register_user(self):
-        print("Register")
-
         # TRANSFER USER TO A REGISTER WINDOW
         self.register_window = RegisterWindow(self)
         self.register_window.show()
