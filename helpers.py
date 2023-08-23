@@ -265,7 +265,8 @@ def create_group(user_id, group_name, list_of_group_records):
                     'name' : row[0],
                     'category' : row[1],
                     'date' : row[2],
-                    'amount' : row[3]
+                    'transaction_type' : row[3],
+                    'amount' : row[4]
                 }
                 data_list.append(dictionary)
 
@@ -278,6 +279,7 @@ def create_group(user_id, group_name, list_of_group_records):
             AND name = :name
             AND category = :category
             AND date = :date
+            AND transaction_type = :transaction_type
             AND amount = :amount;"""
         
         # Execute the update query for each dictionary in the list
@@ -654,7 +656,11 @@ def get_expenses_by_category(user_id, category):
         cursor = sqliteConnection.cursor()
         values = {'user_id' : user_id,
                   'category': category}
-        query = """SELECT name, date, amount FROM expense WHERE user_id = :user_id and category = :category"""
+        query = """SELECT name, date, transaction_type, amount 
+                    FROM expense 
+                    WHERE user_id = :user_id 
+                        AND category = :category
+                    ORDER BY date DESC"""
         cursor.execute(query, values)
         results = cursor.fetchall()
         cursor.close()
@@ -676,7 +682,7 @@ def get_expenses_by_date_range(user_id, start_date, end_date):
                   'start_date' : start_date,
                   'end_date': end_date}
         
-        query = """SELECT name, category, date, amount 
+        query = """SELECT name, category, date, transaction_type, amount 
                     FROM expense 
                     WHERE user_id = :user_id
                         AND date BETWEEN :start_date AND :end_date"""
@@ -739,12 +745,14 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
         'prev_name' : record_before_editing_list[0],
         'prev_category' : record_before_editing_list[1],
         'prev_date' : record_before_editing_list[2],
-        'prev_amount' : record_before_editing_list[3],
+        'prev_type' : record_before_editing_list[3],
+        'prev_amount' : record_before_editing_list[4],
 
         'new_name' : record_after_editing_list[0],
         'new_category' : record_after_editing_list[1],
         'new_date' : record_after_editing_list[2], 
-        'new_amount' : record_after_editing_list[3]
+        'new_type' : record_after_editing_list[3],
+        'new_amount' : record_after_editing_list[4]
     }
 
     # Validate date format
@@ -755,7 +763,11 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
     if values['new_name'] == "":
         message = "Missing name"
         return (False, message)
-    # check if amount is aa positive numeric value
+    # Check if the type is valid
+    if values['new_type'] not in ALL_EXPENSE_TYPES:
+        message = "Invalid transaction type"
+        return (False, message)
+    # check if amount is a positive numeric value
     if not is_valid_numeral(values['new_amount']):
         message = "Invalid amount"
         return (False, message)
@@ -770,10 +782,13 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
         query = """UPDATE expense
                 SET name = :new_name,
                     date = :new_date,
+                    transaction_type = :new_type,
+                    category = :new_category,
                     amount = :new_amount
                 WHERE user_id = :user_id
                     AND name = :prev_name
                     AND category = :prev_category
+                    AND transaction_type = :prev_type
                     AND date = :prev_date
                     AND amount = :prev_amount;
                         """
@@ -791,7 +806,6 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
     
     print(record_before_editing_list)
     print(record_after_editing_list)
-    # COMPLETE THE REST
 
 
 # Select date by user_id and group
@@ -809,7 +823,7 @@ def get_group_expenses(user_id, group_name):
         values = {'user_id' : user_id,
                   'group_id' : current_group}
         
-        query = """SELECT name, category, date, amount 
+        query = """SELECT name, category, date, transaction_type, amount 
                     FROM expense 
                     WHERE user_id = :user_id
                         AND group_id = :group_id"""

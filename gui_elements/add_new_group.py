@@ -177,8 +177,8 @@ class AddGroupWindow(QMainWindow):
             }"""
             self.table.setStyleSheet(stylesheet)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-            self.table.setColumnCount(5)
-            self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Add"])
+            self.table.setColumnCount(6)
+            self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Add"])
             self.table.verticalHeader().setDefaultSectionSize(50)
 
             # Populate table with data
@@ -187,22 +187,24 @@ class AddGroupWindow(QMainWindow):
                     name = expense_record[0]
                     category = expense_record[1]
                     date = expense_record[2]
-                    amount = expense_record[3]
+                    transaction_type = expense_record[3]
+                    amount = expense_record[4]
 
                     # Insert extracted data into a row 
                     self.table.insertRow(i)
                     self.table.setItem(i, 0, QTableWidgetItem(name))
                     self.table.setItem(i, 1, QTableWidgetItem(category))
                     self.table.setItem(i, 2, QTableWidgetItem(date))
-                    self.table.setItem(i, 3, QTableWidgetItem(str(amount)))
+                    self.table.setItem(i, 3, QTableWidgetItem(transaction_type))
+                    self.table.setItem(i, 4, QTableWidgetItem(str(amount)))
 
                     # Checkbox to include a record into a group
                     checkbox = QCheckBox("Add", self)
                     checkbox.setStyleSheet("background-color: #F9EBD1; border: none; border-radius: 5; padding: 5 0" )
-                    self.table.setCellWidget(i, 4, checkbox)
+                    self.table.setCellWidget(i, 5, checkbox)
 
                     # Make cells besides checkbox non-editable
-                    for column in range(4):
+                    for column in range(5):
                         label_item = self.table.item(i, column)
                         if label_item:
                             # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
@@ -278,8 +280,8 @@ class AddGroupWindow(QMainWindow):
         }"""
         self.table.setStyleSheet(stylesheet)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Add"])
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Add"])
         self.table.verticalHeader().setDefaultSectionSize(50)
         
         # Populate table with data
@@ -287,22 +289,24 @@ class AddGroupWindow(QMainWindow):
             for i, expense_record in enumerate(self.group_selection_data):
                 name = expense_record[0]
                 date = expense_record[1]
-                amount = expense_record[2]
+                transaction_type = expense_record[2]
+                amount = expense_record[3]
 
                 # Insert extracted data into a row 
                 self.table.insertRow(i)
                 self.table.setItem(i, 0, QTableWidgetItem(name))
                 self.table.setItem(i, 1, QTableWidgetItem(category))
                 self.table.setItem(i, 2, QTableWidgetItem(date))
-                self.table.setItem(i, 3, QTableWidgetItem(str(amount)))
+                self.table.setItem(i, 3, QTableWidgetItem(transaction_type))
+                self.table.setItem(i, 4, QTableWidgetItem(str(amount)))
 
                 # Checkbox to include a record into a group
                 checkbox = QCheckBox("Add", self)
                 checkbox.setStyleSheet("background-color: #F9EBD1; border: none; border-radius: 5; padding: 5 0" )
-                self.table.setCellWidget(i, 4, checkbox)
+                self.table.setCellWidget(i, 5, checkbox)
             
                 # Make cells besides checkbox non-editable
-                for column in range(4):
+                for column in range(5):
                     label_item = self.table.item(i, column)
                     if label_item:
                         # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
@@ -333,11 +337,10 @@ class AddGroupWindow(QMainWindow):
 
         for row in range(row_count):
             # I is the column with checkbox
-            checkbox = self.table.cellWidget(row, 4)
+            checkbox = self.table.cellWidget(row, 5)
             if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
-                row_data = [self.table.item(row, column).text() for column in range(4)]
+                row_data = [self.table.item(row, column).text() for column in range(5)]
                 selected_rows_data.append(row_data)
-
         # Error message for lack of selection
         if not selected_rows_data:
             no_rows_selected_msg = QMessageBox.warning(self, "Information", "Nothing was selected")

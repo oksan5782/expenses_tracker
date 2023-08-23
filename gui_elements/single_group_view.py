@@ -55,8 +55,8 @@ class DisplayGroupList(QMainWindow):
         }"""
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(stylesheet)
-        self.table_widget.setColumnCount(6)
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Amount ($)", "Edit", "Exclude"])
+        self.table_widget.setColumnCount(7)
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Exclude"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
         # GETTING DATA FROM THE DATABASE
@@ -65,21 +65,23 @@ class DisplayGroupList(QMainWindow):
          # Check for null
         if not group_expenses_list:
             self.table_widget.setRowCount(1)
-            self.table_widget.setSpan(0, 0, 1, 6)
+            self.table_widget.setSpan(0, 0, 1, 7)
             self.table_widget.setItem(0, 0, QTableWidgetItem("No Data For This Group"))
         else:
             for i, expense_record in enumerate(group_expenses_list):
                 name = expense_record[0]
                 category = expense_record[1]
                 date = expense_record[2]
-                amount = expense_record[3]
+                transaction_type = expense_record[3]
+                amount = expense_record[4]
 
                 # Insert extracted data into a row 
                 self.table_widget.insertRow(i)
                 self.table_widget.setItem(i, 0, QTableWidgetItem(name))
                 self.table_widget.setItem(i, 1, QTableWidgetItem(category))
                 self.table_widget.setItem(i, 2, QTableWidgetItem(date))
-                self.table_widget.setItem(i, 3, QTableWidgetItem(str(amount)))
+                self.table_widget.setItem(i, 3, QTableWidgetItem(transaction_type))
+                self.table_widget.setItem(i, 4, QTableWidgetItem(str(amount)))
 
                 # Button to edit the record
                 edit_this_group_record = QPushButton("Edit", self)
@@ -96,12 +98,12 @@ class DisplayGroupList(QMainWindow):
                 remove_this_group_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
 
 
-                self.table_widget.setCellWidget(i, 4, edit_this_group_record)
-                self.table_widget.setCellWidget(i, 5, remove_this_group_record)
+                self.table_widget.setCellWidget(i, 5, edit_this_group_record)
+                self.table_widget.setCellWidget(i, 6, remove_this_group_record)
 
 
                 # Set all labels as non-editable initially
-                for column in range(4):
+                for column in range(5):
                     label_item = self.table_widget.item(i, column)
                     if label_item:
                         # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
@@ -149,7 +151,7 @@ class DisplayGroupList(QMainWindow):
 
             # Collect data to find the row in DB
             self.row_data_before_editing = []
-            for column in range(4):
+            for column in range(5):
                 label_item = self.table_widget.item(row_index, column)
                 self.row_data_before_editing.append(label_item.text())
                 if label_item:
@@ -158,13 +160,13 @@ class DisplayGroupList(QMainWindow):
                     label_item.setFlags(label_item.flags() | Qt.ItemFlag.ItemIsEditable)
 
             # Change text of the "Edit" button to "Apply"
-            edit_button = self.table_widget.cellWidget(row_index, 4)
+            edit_button = self.table_widget.cellWidget(row_index, 5)
             edit_button.setText("Apply")
 
         else:  # When the "Apply" button is unchecked
             edited_row_data = []
             # Retrieve data from QTableWidgetItem and print the edited data
-            for column in range(4):
+            for column in range(5):
                 label_item = self.table_widget.item(row_index, column)
                 if label_item:
                     edited_row_data.append(label_item.text())
@@ -173,7 +175,7 @@ class DisplayGroupList(QMainWindow):
                     label_item.setForeground(QBrush(QColor("#000000")))  # Reset the text color
 
             # Change text of the "Apply" button to "Edit"
-            edit_button = self.table_widget.cellWidget(row_index, 4)
+            edit_button = self.table_widget.cellWidget(row_index, 5)
             edit_button.setText("Edit")
 
             # Update record in DB 

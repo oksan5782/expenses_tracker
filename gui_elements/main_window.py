@@ -210,13 +210,13 @@ class MainScreen(QWidget):
         categories_title = QLabel("Categories")
         categories_title.setFont(QFont('Futura', 18))
 
-        # Button to view all categories
-        open_all_categories_button = StyledPushButton("All Categories", 150, "#DEB887", 16)
-        open_all_categories_button.clicked.connect(self.open_all_categories)
+        # Explanation how categories work
+        categories_description = QLabel("Press each category for more details. Button titles contain data for the last month only")
+        categories_description.setFont(QFont('Futura', 15))
 
         # Add categories label and button to the view
         categories_title_layout.addWidget(categories_title)
-        categories_title_layout.addWidget(open_all_categories_button)
+        categories_title_layout.addWidget(categories_description)
         self.categories_grid_layout.addLayout(categories_title_layout, 0, 0, 1, 5)
 
         # Get top 10 categories in user's expenses (tuple: name, spent this  month)
@@ -388,50 +388,7 @@ class MainScreen(QWidget):
         # Display newly created instance
         self.single_category_view.show()
 
-        
-        
-    #close detailed category view window    
-    #
-    def close_this_categories(self):
-        self.list_all_categories_widget.hide()
-
-
-    def open_all_categories(self):
-        # View the list of all categories
-        self.list_all_categories_widget = QWidget()
-        all_cat_layout = QFormLayout()
-
-        self.list_all_categories_widget.setGeometry(500, 200, 600, 300)
-
-        for index, name in enumerate(helpers.ALL_POSSIBLE_CATEGORIES_LIST):
-            # Label names
-            label_category_name = QLabel(name)
-            label_category_name.setFont(QFont('Futura', 16))
-
-            # QLine edits to enter input
-            button_name = "View " + name
-            view_single_category_button = AutoShrinkButton(button_name, 180, "#8FBC8F")
-            view_single_category_button.clicked.connect(lambda x, name=name : self.category_button_press(name))
-
-            # Insert labels and line edits into layout
-            all_cat_layout.addRow(label_category_name, view_single_category_button)
-
-        # Add closing button 
-        close_all_categories_button = StyledPushButton("Close", 150, "#B0C4DE", 16)
-        close_all_categories_button.clicked.connect(self.close_all_categories)
-        
-        placeholder = QLabel("")
-        all_cat_layout.addRow(placeholder, close_all_categories_button)
-
-        self.list_all_categories_widget.setLayout(all_cat_layout)
-        self.list_all_categories_widget.show()
-
-    def close_all_categories(self):
-        self.list_all_categories_widget.hide()
-
-
-
-
+   
 
 # CREATE A LIST OF TOP 5 EXPENCE CATEGORIES per last 6 month and reverse month
 class StackedBarChart(QWidget):

@@ -56,8 +56,8 @@ class DisplayCategoryList(QMainWindow):
 
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(stylesheet)
-        self.table_widget.setColumnCount(4)
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)", "Edit"])
+        self.table_widget.setColumnCount(5)
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Type", "Amount ($)", "Edit"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
         # GETTING DATA FROM THE DATABASE
@@ -66,19 +66,21 @@ class DisplayCategoryList(QMainWindow):
         # Check for null
         if not current_category_expenses_list:
             self.table_widget.setRowCount(1)
-            self.table_widget.setSpan(0, 0, 1, 4)
+            self.table_widget.setSpan(0, 0, 1, 5)
             self.table_widget.setItem(0, 0, QTableWidgetItem("No Data For This Category"))
         else:
             for i, expense_record in enumerate(current_category_expenses_list):
                 name = expense_record[0]
                 date = expense_record[1]
-                amount = expense_record[2]
+                transaction_type = expense_record[2]
+                amount = expense_record[3]
 
                 # Insert extracted data into a row
                 self.table_widget.insertRow(i)
                 self.table_widget.setItem(i, 0, QTableWidgetItem(name))
                 self.table_widget.setItem(i, 1, QTableWidgetItem(date))
-                self.table_widget.setItem(i, 2, QTableWidgetItem(str(amount)))
+                self.table_widget.setItem(i, 2, QTableWidgetItem(transaction_type))
+                self.table_widget.setItem(i, 3, QTableWidgetItem(str(amount)))
 
                 # Edit button
                 edit_this_expense_button = QPushButton("Edit", self)
@@ -86,10 +88,10 @@ class DisplayCategoryList(QMainWindow):
                 edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
                 edit_this_expense_button.setFont(QFont("Futura", 16))
                 edit_this_expense_button.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
-                self.table_widget.setCellWidget(i, 3, edit_this_expense_button)
+                self.table_widget.setCellWidget(i, 4, edit_this_expense_button)
 
                 # Set all labels as non-editable initially
-                for column in range(3):
+                for column in range(4):
                     label_item = self.table_widget.item(i, column)
                     if label_item:
                         # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
@@ -120,7 +122,7 @@ class DisplayCategoryList(QMainWindow):
 
             # Collect data to find the row in DB
             self.row_data_before_editing = []
-            for column in range(3):
+            for column in range(4):
                 label_item = self.table_widget.item(row_index, column)
                 self.row_data_before_editing.append(label_item.text())
                 if label_item:
@@ -129,13 +131,13 @@ class DisplayCategoryList(QMainWindow):
                     label_item.setFlags(label_item.flags() | Qt.ItemFlag.ItemIsEditable)
 
             # Change text of the "Edit" button to "Apply"
-            edit_button = self.table_widget.cellWidget(row_index, 3)
+            edit_button = self.table_widget.cellWidget(row_index, 4)
             edit_button.setText("Apply")
 
         else:  # When the "Apply" button is unchecked
             edited_row_data = []
             # Retrieve data from QTableWidgetItem and insert the edited data
-            for column in range(3):
+            for column in range(4):
                 label_item = self.table_widget.item(row_index, column)
                 if label_item:
                     edited_row_data.append(label_item.text())
@@ -144,7 +146,7 @@ class DisplayCategoryList(QMainWindow):
                     label_item.setForeground(QBrush(QColor("#000000")))  # Reset the text color
 
             # Change text of the "Apply" button to "Edit"
-            edit_button = self.table_widget.cellWidget(row_index, 3)
+            edit_button = self.table_widget.cellWidget(row_index, 4)
             edit_button.setText("Edit")
 
             
