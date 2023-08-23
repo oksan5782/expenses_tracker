@@ -60,43 +60,20 @@ class DisplayCategoryList(QMainWindow):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Type", "Amount ($)", "Edit"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        header = self.table_widget.horizontalHeader()
+        header.setSectionsClickable(True)
+        header.sectionClicked.connect(self.header_clicked)
+
         # GETTING DATA FROM THE DATABASE
-        current_category_expenses_list = get_expenses_by_category(self.user_id, self.category_title)
+        self.current_category_expenses_list = get_expenses_by_category(self.user_id, self.category_title)
         
         # Check for null
-        if not current_category_expenses_list:
+        if not self.current_category_expenses_list:
             self.table_widget.setRowCount(1)
             self.table_widget.setSpan(0, 0, 1, 5)
             self.table_widget.setItem(0, 0, QTableWidgetItem("No Data For This Category"))
         else:
-            for i, expense_record in enumerate(current_category_expenses_list):
-                name = expense_record[0]
-                date = expense_record[1]
-                transaction_type = expense_record[2]
-                amount = expense_record[3]
-
-                # Insert extracted data into a row
-                self.table_widget.insertRow(i)
-                self.table_widget.setItem(i, 0, QTableWidgetItem(name))
-                self.table_widget.setItem(i, 1, QTableWidgetItem(date))
-                self.table_widget.setItem(i, 2, QTableWidgetItem(transaction_type))
-                self.table_widget.setItem(i, 3, QTableWidgetItem(str(amount)))
-
-                # Edit button
-                edit_this_expense_button = QPushButton("Edit", self)
-                edit_this_expense_button.setCheckable(True)
-                edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
-                edit_this_expense_button.setFont(QFont("Futura", 16))
-                edit_this_expense_button.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
-                self.table_widget.setCellWidget(i, 4, edit_this_expense_button)
-
-                # Set all labels as non-editable initially
-                for column in range(4):
-                    label_item = self.table_widget.item(i, column)
-                    if label_item:
-                        # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
-                        label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-
+            self.fill_table_content()
 
         outer_frame_layout.addWidget(self.table_widget)
 
@@ -113,6 +90,58 @@ class DisplayCategoryList(QMainWindow):
         self.setCentralWidget(outer_frame)
         self.show()
     
+
+    def header_clicked(self, logical_index):
+        # Sort by Name
+        if logical_index == 0:
+            self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[0])
+        # Sort by Date
+        if logical_index == 1:
+            self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[1], reverse=True)
+        # Sort by type
+        if logical_index == 2:
+            self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[2])
+        # Sort by amount
+        if logical_index == 3:
+            self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[3], reverse=True)
+        
+        self.table_widget.clearContents()
+        self.fill_table_content()
+    
+
+    def fill_table_content(self):
+        self.table_widget.clearContents()
+        self.table_widget.setRowCount(len(self.current_category_expenses_list))
+    
+        for i, expense_record in enumerate(self.current_category_expenses_list):
+            name = expense_record[0]
+            date = expense_record[1]
+            transaction_type = expense_record[2]
+            amount = expense_record[3]
+
+            # Insert extracted data into a row
+            self.table_widget.setItem(i, 0, QTableWidgetItem(name))
+            self.table_widget.setItem(i, 1, QTableWidgetItem(date))
+            self.table_widget.setItem(i, 2, QTableWidgetItem(transaction_type))
+            self.table_widget.setItem(i, 3, QTableWidgetItem(str(amount)))
+
+            # Edit button
+            edit_this_expense_button = QPushButton("Edit", self)
+            edit_this_expense_button.setCheckable(True)
+            edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
+            edit_this_expense_button.setFont(QFont("Futura", 16))
+            edit_this_expense_button.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
+            self.table_widget.setCellWidget(i, 4, edit_this_expense_button)
+
+        # Set all labels as non-editable initially
+        for column in range(4):
+            label_item = self.table_widget.item(i, column)
+            if label_item:
+                # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
+                label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+
+
     def close_category_table(self):
         self.hide()
     

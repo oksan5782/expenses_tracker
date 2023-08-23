@@ -704,7 +704,7 @@ def remove_record(user_id, category, name, date, amount):
 
 
 
-def remove_record_from_the_group(user_id, expense_name, category, date, amount):
+def remove_record_from_the_group(user_id, expense_name, category, date, transaction_type, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()
@@ -713,6 +713,7 @@ def remove_record_from_the_group(user_id, expense_name, category, date, amount):
                   'expense_name' : expense_name,
                   'category': category,
                   'date' : date,
+                  'transaction_type' : transaction_type,
                   'amount' : amount
                 }
         update_query = """
@@ -722,6 +723,7 @@ def remove_record_from_the_group(user_id, expense_name, category, date, amount):
             AND name = :expense_name
             AND category = :category
             AND date = :date
+            AND transaction_type = :transaction_type
             AND amount = :amount;"""
 
         cursor.execute(update_query, values)

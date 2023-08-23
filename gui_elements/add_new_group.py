@@ -251,7 +251,7 @@ class AddGroupWindow(QMainWindow):
 
         # Hide this window and open a table with checkmarks
         self.category_selection.hide()
-        self.resize(500, 350)
+        self.resize(600, 350)
         
         table_selection_layout = QVBoxLayout()
 

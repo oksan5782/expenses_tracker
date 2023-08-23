@@ -131,8 +131,8 @@ class DisplayGroupList(QMainWindow):
     # Remove current record from the group only
     def remove_this_expense_record(self, row):
         # Collect data to find it in DB
-        row_data = [self.table_widget.item(row, column).text() for column in range(4)]
-        sql_return_value = remove_record_from_the_group(self.user_id, row_data[0], row_data[1], row_data[2], row_data[3])
+        row_data = [self.table_widget.item(row, column).text() for column in range(5)]
+        sql_return_value = remove_record_from_the_group(self.user_id, row_data[0], row_data[1], row_data[2], row_data[3], row_data[4])
        
         # Flush message about what was removed
         if sql_return_value:
