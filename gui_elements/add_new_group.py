@@ -54,11 +54,13 @@ class AddGroupWindow(QMainWindow):
 
         # Row 3 - buttons to choose by date or by category
         create_by_calendar_button = QPushButton("By Calendar")
+        create_by_calendar_button.setCursor(Qt.CursorShape.PointingHandCursor)
         create_by_calendar_button.setFixedWidth(155)
         create_by_calendar_button.clicked.connect(self.select_group_by_calendar)
         create_by_calendar_button.setStyleSheet('background-color : #A8DCF0; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
 
         create_by_category_button = QPushButton("By Category")
+        create_by_category_button.setCursor(Qt.CursorShape.PointingHandCursor)
         create_by_category_button.setFixedWidth(155)
         create_by_category_button.clicked.connect(self.select_group_by_category)
         create_by_category_button.setStyleSheet('background-color : #A8DCF0; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
@@ -84,6 +86,7 @@ class AddGroupWindow(QMainWindow):
 
         # Button to run search by dates
         search_by_date_button = QPushButton("Search")
+        search_by_date_button.setCursor(Qt.CursorShape.PointingHandCursor)
         search_by_date_button.clicked.connect(self.generate_group_selection_list_by_date)
         search_by_date_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         calender_selection_layout.addWidget(search_by_date_button)
@@ -113,6 +116,7 @@ class AddGroupWindow(QMainWindow):
         
         # Button to run search by category
         search_by_category_button = QPushButton("Search")
+        search_by_category_button.setCursor(Qt.CursorShape.PointingHandCursor)
         search_by_category_button.clicked.connect(lambda : self.generate_group_selection_list_by_category(self.list_expenses_selection.currentText()))
         search_by_category_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         category_selection_layout.addWidget(search_by_category_button)
@@ -218,6 +222,7 @@ class AddGroupWindow(QMainWindow):
 
             # Button to create a group
             create_group_button = QPushButton("Create Group")
+            create_group_button.setCursor(Qt.CursorShape.PointingHandCursor)
             create_group_button.clicked.connect(self.create_group)
             create_group_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
             table_selection_layout.addWidget(create_group_button)
@@ -320,6 +325,7 @@ class AddGroupWindow(QMainWindow):
 
         # Button to create a group
         create_group_button = QPushButton("Create Group")
+        create_group_button.setCursor(Qt.CursorShape.PointingHandCursor)
         create_group_button.clicked.connect(self.create_group)
         create_group_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         table_selection_layout.addWidget(create_group_button)

@@ -43,13 +43,15 @@ class RegisterWindow(QWidget):
         layout.addRow(label_confirm_password, self.confirm_password_line_edit)
 
         # Register button
-        log_in_button = QPushButton("Register")
-        log_in_button.clicked.connect(lambda : self.try_register_user(self.username_line_edit.text(), self.password_line_edit.text(), self.confirm_password_line_edit.text()))
-        log_in_button.setStyleSheet('background-color : #66CDAA; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
-        layout.addRow(log_in_button)
+        register_button = QPushButton("Register")
+        register_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        register_button.clicked.connect(lambda : self.try_register_user(self.username_line_edit.text(), self.password_line_edit.text(), self.confirm_password_line_edit.text()))
+        register_button.setStyleSheet('background-color : #66CDAA; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
+        layout.addRow(register_button)
 
         # Back to log in button
         back_to_login_button = QPushButton("Back to Log In")
+        back_to_login_button.setCursor(Qt.CursorShape.PointingHandCursor)
         back_to_login_button.clicked.connect(self.back_to_login)
         back_to_login_button.setStyleSheet('background-color : #9FC4C6; font-weight: 600; font-size: 14px; border-radius : 5; padding: 5 0')
         layout.addRow(back_to_login_button)

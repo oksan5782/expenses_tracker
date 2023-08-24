@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (QCalendarWidget,
                             QHBoxLayout, QVBoxLayout, QWidget, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QPushButton, 
+                            QTableWidgetItem, QHeaderView, 
                             QLabel, QAbstractItemView)
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtCore import Qt, QDate, QEvent
 from PyQt6.QtGui import QFont
 
 # Import data insertion function
@@ -40,6 +40,7 @@ class CalendarView(QWidget):
         self.layout.addWidget(self.calendar)
 
 
+
     # Create and display table of daily expenses for the day clicked
     def calendar_date_changed(self):
         date_selected = self.calendar.selectedDate().toPyDate()
@@ -68,6 +69,7 @@ class CustomCalendarWidget(QCalendarWidget):
         # Set min and max days to display in the calendar
         self.setMaximumDate(QDate(max_date.year, max_date.month, max_date.day))
         self.setMinimumDate(QDate(min_date.year, min_date.month, min_date.day))
+
 
     # Write sum of the expenses for a day 
     def paintCell(self, painter, rect, date):

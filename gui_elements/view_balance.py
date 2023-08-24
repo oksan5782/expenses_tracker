@@ -30,6 +30,7 @@ class ViewBalanceWindow(QWidget):
 
         # Add change limit button 
         change_limit_button = QPushButton("Set Budget")
+        change_limit_button.setCursor(Qt.CursorShape.PointingHandCursor)
         change_limit_button.clicked.connect(lambda: self.set_new_limit_value(self.new_budget.text()))
         change_limit_button.setStyleSheet('background-color : #C3BAF7; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addWidget(change_limit_button)

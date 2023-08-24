@@ -79,6 +79,7 @@ class DisplayCategoryList(QMainWindow):
 
         # Closing button
         closing_button = QPushButton("Close")
+        closing_button.setCursor(Qt.CursorShape.PointingHandCursor)
         closing_button.setFixedWidth(150)
         closing_button.setStyleSheet("background-color: #B0C4DE; border: none; border-radius: 5; padding: 5 0" )
         closing_button.setFont(QFont("Futura", 16))
@@ -127,6 +128,7 @@ class DisplayCategoryList(QMainWindow):
 
             # Edit button
             edit_this_expense_button = QPushButton("Edit", self)
+            edit_this_expense_button.setCursor(Qt.CursorShape.PointingHandCursor)
             edit_this_expense_button.setCheckable(True)
             edit_this_expense_button.setStyleSheet("background-color: #B3B3FF; border: none; border-radius: 5; padding: 5 0" )
             edit_this_expense_button.setFont(QFont("Futura", 16))

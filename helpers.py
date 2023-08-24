@@ -148,7 +148,7 @@ def get_recent_expenses(user_id):
 
 
 # Functions for Balance area
-def get_monthly_budget(user_id):
+def get_monthly_income(user_id):
     # PLACEHOLDER
     return 4000
 

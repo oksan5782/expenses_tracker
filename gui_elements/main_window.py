@@ -233,6 +233,8 @@ class MainScreen(QWidget):
                 # Category item as a button
                 button_name = TOP_CATEGORIES_LIST[i][0]+ "\n" + str(TOP_CATEGORIES_LIST[i][1])
                 category_item_button = QPushButton(button_name)
+                category_item_button.setCursor(Qt.CursorShape.PointingHandCursor)
+
                 category_item_button.setStyleSheet('background-color : #FFEBCD; color: #2A3036; font-weight: 600; border-radius : 5; padding: 8 0')
                 category_item_button.setFont(QFont('Futura', 16))
 
@@ -402,6 +404,7 @@ class StackedBarChart(QWidget):
 
         # Create a button for setting Y-axis range
         self.range_button = QPushButton("Set Y-axis Range")
+        self.range_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.range_button.setStyleSheet("background-color: #B3E0FF; border: none; border-radius: 5; padding: 5 0" )
 
         self.range_button.clicked.connect(self.show_range_dialog)
@@ -522,7 +525,7 @@ class BalanceChart(QWidget):
         donut_chart_layout = QVBoxLayout()
 
         # Extract data
-        MONTHLY_LIMIT = helpers.get_monthly_budget(self.user_id)
+        MONTHLY_LIMIT = helpers.get_monthly_income(self.user_id)
         THIS_MONTH_EXPENSES = helpers.get_this_month_expenses(self.user_id)
 
         # Create donut slices with data
@@ -556,6 +559,7 @@ class StyledPushButton(QPushButton):
         self.setFixedWidth(width)
         self.setStyleSheet(f"background-color: {color}; border: none; border-radius: 5; padding: 5 0" )
         self.setFont(QFont("Futura", font_size))
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
 
 
@@ -572,6 +576,8 @@ class AutoShrinkButton(QPushButton):
         self.setFixedWidth(width)
         self.setStyleSheet(f"background-color: {color}; font-weight: 550; border: none; border-radius: 5; padding: 5 0" )
         self.update_font_size()
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
 
     def setFontSize(self, size):
         font = QFont(self.original_font)

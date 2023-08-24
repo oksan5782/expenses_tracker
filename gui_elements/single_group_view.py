@@ -85,6 +85,7 @@ class DisplayGroupList(QMainWindow):
 
                 # Button to edit the record
                 edit_this_group_record = QPushButton("Edit", self)
+                edit_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
                 edit_this_group_record.setCheckable(True)
                 edit_this_group_record.setStyleSheet("background-color: #D9BFBF; border: none; border-radius: 5; padding: 5 0" )
                 edit_this_group_record.setFont(QFont("Futura", 16))
@@ -93,6 +94,7 @@ class DisplayGroupList(QMainWindow):
 
                 # Button to remove record from the group
                 remove_this_group_record = QPushButton("Remove", self)
+                remove_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
                 remove_this_group_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
                 remove_this_group_record.setFont(QFont("Futura", 16))
                 remove_this_group_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
@@ -113,6 +115,7 @@ class DisplayGroupList(QMainWindow):
 
         # Closing button
         closing_button = QPushButton("Close")
+        closing_button.setCursor(Qt.CursorShape.PointingHandCursor)
         closing_button.setFixedWidth(150)
         closing_button.setStyleSheet("background-color: #B0C4DE; border: none; border-radius: 5; padding: 5 0" )
         closing_button.setFont(QFont("Futura", 16))

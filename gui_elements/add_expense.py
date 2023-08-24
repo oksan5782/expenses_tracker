@@ -81,6 +81,7 @@ class AddExpenseWindow(QWidget):
 
         # Upload input button
         add_expense_button = QPushButton("Add")
+        add_expense_button.setCursor(Qt.CursorShape.PointingHandCursor)
         add_expense_button.clicked.connect(lambda : self.add_expense(self.name_line_edit.text(), self.amount_line_edit.text(), self.date_line_edit.text(), self.category.currentText(), self.type.currentText()))
         add_expense_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addRow(add_expense_button)

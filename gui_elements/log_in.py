@@ -42,12 +42,14 @@ class LogInWindow(QWidget):
 
         # Log in button
         log_in_button = QPushButton("Log In")
+        log_in_button.setCursor(Qt.CursorShape.PointingHandCursor)
         log_in_button.clicked.connect(lambda: self.log_in_user(self.username_line_edit.text(), self.password_line_edit.text()))
         log_in_button.setStyleSheet('background-color : #D8BFD8; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addRow(log_in_button)
 
         # Register new user button
         register_button = QPushButton("New User")
+        register_button.setCursor(Qt.CursorShape.PointingHandCursor)
         register_button.clicked.connect(self.register_user)
         register_button.setStyleSheet('background-color : #9FC4C6; font-weight: 600; font-size: 14px; border-radius : 5; padding: 5 0')
         layout.addRow(register_button)

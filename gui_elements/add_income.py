@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QFormLayout, 
                             QMessageBox, QLineEdit)
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt
 
 
 # Import data insertion function
@@ -42,6 +43,7 @@ class AddIncomeWindow(QWidget):
 
         # Upload input button
         add_income_button = QPushButton("Add")
+        add_income_button.setCursor(Qt.CursorShape.PointingHandCursor)
         add_income_button.clicked.connect(lambda : self.add_income(self.amount_line_edit.text(), self.label_date_line_edit.text()))
         add_income_button.setStyleSheet('background-color : #8CD9AF; font-weight: 600; font-size: 16px; border-radius : 5; padding: 6 0')
         layout.addRow(add_income_button)
