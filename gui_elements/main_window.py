@@ -1,8 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor, QPainter, QFontMetrics
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, 
-                            QHBoxLayout, QVBoxLayout, QFormLayout, 
-                            QFileDialog, QMessageBox, QTableWidget, QTableWidgetItem)
+                            QHBoxLayout, QVBoxLayout, QFormLayout, QDialog,
+                            QDialogButtonBox, QSpinBox, QFileDialog, QMessageBox,
+                            QTableWidget, QTableWidgetItem)
 
 from PyQt6.QtCharts import (QBarCategoryAxis, QStackedBarSeries, QBarSet, QChart, 
                             QChartView, QValueAxis, QPieSeries, QPieSlice)
@@ -390,7 +391,6 @@ class MainScreen(QWidget):
 
    
 
-# CREATE A LIST OF TOP 5 EXPENCE CATEGORIES per last 6 month and reverse month
 class StackedBarChart(QWidget):
     def __init__(self, user_id):
         super().__init__()
@@ -399,11 +399,21 @@ class StackedBarChart(QWidget):
 
     def init_chart_ui(self):
         self.bar_chart_layout = QVBoxLayout()
+
+        # Create a button for setting Y-axis range
+        self.range_button = QPushButton("Set Y-axis Range")
+        self.range_button.setStyleSheet("background-color: #B3E0FF; border: none; border-radius: 5; padding: 5 0" )
+
+        self.range_button.clicked.connect(self.show_range_dialog)
+        self.bar_chart_layout.addWidget(self.range_button)
+
+
         self.chart_view = None  # Store the chart view widget
         self.no_results_label = None
         self.refresh_chart()  # Initial chart creation or refresh if needed
 
         self.setLayout(self.bar_chart_layout)
+
 
     def refresh_chart(self):
 
@@ -420,8 +430,9 @@ class StackedBarChart(QWidget):
             self.chart_view.deleteLater()  # Delete the previous chart view
         
         if RECENT_EXPENSES:
+
             self.series = QStackedBarSeries()
-            # Input the list of values in a dictionary of top 5 expence categories for the last 6 months into series
+            # Input the list of values in a dictionary of top 5 expense categories for the last 6 months into series
             for key in RECENT_EXPENSES:
                 self.key = QBarSet(key)
                 self.key.append(RECENT_EXPENSES[key])
@@ -463,6 +474,37 @@ class StackedBarChart(QWidget):
             self.no_results_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
             self.bar_chart_layout.addWidget(self.no_results_label)
 
+    
+    def show_range_dialog(self):
+        min_spinbox = QSpinBox()
+        min_spinbox.setRange(0, 5000)
+        min_spinbox.setValue(self.axis_y.min())
+
+        max_spinbox = QSpinBox()
+        max_spinbox.setRange(0, 5000)
+        max_spinbox.setValue(self.axis_y.max())
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Set Y-axis Range")
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Minimum Value"))
+        layout.addWidget(min_spinbox)
+        layout.addWidget(QLabel("Maximum Value"))
+        layout.addWidget(max_spinbox)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+
+        layout.addWidget(button_box)
+        dialog.setLayout(layout)
+
+        if dialog.exec():
+            min_value = min_spinbox.value()
+            max_value = max_spinbox.value()
+            self.axis_y.setRange(min_value, max_value)
+            self.chart_view.repaint()
 
 
 # Donut chart with the expences made on current month
