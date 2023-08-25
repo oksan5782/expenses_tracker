@@ -20,15 +20,6 @@ cur.execute("""CREATE TABLE income (
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user (id))""")
 
-# Balance table
-cur.execute("""CREATE TABLE balance (
-    balance_id INTEGER PRIMARY KEY NOT NULL,
-    balance_type TEXT NOT NULL,
-    date TEXT NOT NULL,
-    set_balance INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user (id))""")
-
 # Groups table
 cur.execute("""CREATE TABLE groups (
     group_id INTEGER PRIMARY KEY NOT NULL,
