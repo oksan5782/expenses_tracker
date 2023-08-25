@@ -85,8 +85,6 @@ def is_valid_numeral(number):
 # Setup sqlite3
 import sqlite3
 
-# CHECK IF the all recurring transactions were placed this month
-
 
 # Get Recent Expenses for Stacked bar chart
 def get_recent_expenses(user_id):
@@ -149,12 +147,56 @@ def get_recent_expenses(user_id):
 
 # Functions for Balance area
 def get_monthly_income(user_id):
-    # PLACEHOLDER
-    return 4000
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    current_month = datetime.now().strftime("%Y-%m")
+    print(current_month)
+
+    # No need to validate date sinse its taken from Calendar widget
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {
+                   'current_month' : current_month,
+                   'user_id' : user_id}
+        query = """SELECT IFNULL(SUM(amount), 0) FROM income WHERE user_id = :user_id AND strftime('%Y-%m', date) = :current_month"""
+        cursor.execute(query, values)
+        result = cursor.fetchone()[0]
+        cursor.close()
+        print(result)
+        # Finally will be executed after 'finally' statements, so return can be made
+        return result
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
 
 def get_this_month_expenses(user_id):
-    # PLACEHOLDER
-    return 3300
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    current_month = datetime.now().strftime("%Y-%m")
+
+    # No need to validate date sinse its taken from Calendar widget
+    try:
+        cursor = sqliteConnection.cursor()
+        values = {
+                   'current_month' : current_month,
+                   'user_id' : user_id}
+        query = """SELECT IFNULL(SUM(amount), 0) FROM expense WHERE user_id = :user_id AND strftime('%Y-%m', date) = :current_month"""
+        cursor.execute(query, values)
+        result = cursor.fetchone()[0]
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        return result
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
+
 
 """Functions for calendar block """
 # Extracting the sum of expenses for a given date
@@ -458,7 +500,6 @@ def upload_expense_csv_chase(user_id, file):
 
         # Update amount values to float type
         df['Amount'] = df['Amount'].astype(float)
-        print(df)
 
         # Get positive values to upload them as income 
         df_returns_or_income = df[df['Amount'] > 0]

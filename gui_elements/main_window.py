@@ -267,7 +267,7 @@ class MainScreen(QWidget):
         charts_area_layout.addWidget(self.stacked_bar_chart, 0, 0, 1, 4)
 
         # Create donut chart with monthly limit
-        self.current_month_donut_chart = BalanceChart(self.user_id)
+        self.current_month_donut_chart = DonutChart(self.user_id)
         charts_area_layout.addWidget(self.current_month_donut_chart, 0, 4, 1, 2)
 
         self.placeholder_bar_chart.setLayout(charts_area_layout)
@@ -325,9 +325,9 @@ class MainScreen(QWidget):
 
             else:            
                 # Repaint other window
-                self.stacked_bar_chart.refresh_chart()
+                self.stacked_bar_chart.refresh_bar_chart()
                 self.update_categories_area()
-                self.current_month_donut_chart.update_balance()
+                self.current_month_donut_chart.refresh_bar_chart()
 
                 # Display successful upload message
                 upload_complete_msg = QMessageBox.information(self, "Information", message)
@@ -357,9 +357,9 @@ class MainScreen(QWidget):
                 cannot_add_msg = QMessageBox.information(self, "Information", message)
 
             else:   
-                self.stacked_bar_chart.refresh_chart()
+                self.stacked_bar_chart.refresh_bar_chart()
                 self.update_categories_area()
-                self.current_month_donut_chart.update_balance()
+                self.current_month_donut_chart.refresh_donut_chart()
 
                 # Display successful upload message
                 upload_complete_msg = QMessageBox.information(self, "Information", message)
@@ -413,12 +413,12 @@ class StackedBarChart(QWidget):
 
         self.chart_view = None  # Store the chart view widget
         self.no_results_label = None
-        self.refresh_chart()  # Initial chart creation or refresh if needed
+        self.refresh_bar_chart()  # Initial chart creation or refresh if needed
 
         self.setLayout(self.bar_chart_layout)
 
 
-    def refresh_chart(self):
+    def refresh_bar_chart(self):
 
         RECENT_EXPENSES = helpers.get_recent_expenses(self.user_id)
 
@@ -511,7 +511,7 @@ class StackedBarChart(QWidget):
 
 
 # Donut chart with the expences made on current month
-class BalanceChart(QWidget):
+class DonutChart(QWidget):
     def __init__(self, user_id):
         super().__init__()
         self.user_id = user_id
@@ -524,32 +524,50 @@ class BalanceChart(QWidget):
         self.series.setHoleSize(0.4)
         donut_chart_layout = QVBoxLayout()
 
-        # Extract data
-        MONTHLY_LIMIT = helpers.get_monthly_income(self.user_id)
-        THIS_MONTH_EXPENSES = helpers.get_this_month_expenses(self.user_id)
-
-        # Create donut slices with data
-        self.slice1 = self.series.append("Spent", THIS_MONTH_EXPENSES)
-        self.slice1.setBrush(QBrush(QColor("#FCBCB5")))
-        self.slice2 = self.series.append(str(THIS_MONTH_EXPENSES), MONTHLY_LIMIT - THIS_MONTH_EXPENSES)
-        self.slice2.setBrush(QBrush(QColor("#F0F8FF")))
-
-        # Upload series to the chart 
+        # Upload series to the chart
         self.chart = QChart()
         self.chart.addSeries(self.series)
-        self.chart.setTitle("Current Budget is " + str(MONTHLY_LIMIT))
+
+        self.refresh_donut_chart()
 
         # Display the chart and its legend
         self.chart_view = QChartView(self.chart)
         self.chart.legend().setAlignment(Qt.AlignmentFlag.AlignBottom)
         self.chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
+
         donut_chart_layout.addWidget(self.chart_view)
         self.setLayout(donut_chart_layout)
+
     
-    def update_balance(self):
-        # Update chart when values added from other functions
-        print('Updating Balance TODO')
+    def refresh_donut_chart(self):
+        # Clear the current series if any
+        self.series.clear()
+
+        # Extract data
+        current_month_expense = round(helpers.get_this_month_expenses(self.user_id))
+        current_month_income = round(helpers.get_monthly_income(self.user_id))
+        
+        # Create donut slices with data
+        # If income is higher than expense
+        if current_month_expense < current_month_income:
+            self.chart.setTitle("Income > Expense")
+
+            self.slice1 = self.series.append(str(current_month_expense), current_month_expense)
+            self.slice1.setBrush(QBrush(QColor("#C6ECD9")))
+            self.slice2 = self.series.append(str(current_month_income), current_month_income - current_month_expense)
+            self.slice2.setBrush(QBrush(QColor("#79D2A6")))
+        elif current_month_expense > current_month_income:
+            self.chart.setTitle("Income &lt; Expense")
+            self.slice1 = self.series.append(str(current_month_income), current_month_expense)
+            self.slice1.setBrush(QBrush(QColor("#F2738C")))
+            self.slice2 = self.series.append(str(current_month_expense), current_month_income - current_month_expense)
+            self.slice2.setBrush(QBrush(QColor("#990000")))
+        else:
+            self.chart.setTitle("Income = Expense")
+            self.slice1 = self.series.append(str(current_month_income), current_month_expense)
+            self.slice1.setBrush(QBrush(QColor("#D9B3FF")))
+            self.slice2 = self.series.append(str(current_month_expense), current_month_income - current_month_expense)
+            self.slice2.setBrush(QBrush(QColor("#CCCCFF")))
 
 
  # Style buttons to avoit repeated style modifications       
@@ -560,7 +578,6 @@ class StyledPushButton(QPushButton):
         self.setStyleSheet(f"background-color: {color}; border: none; border-radius: 5; padding: 5 0" )
         self.setFont(QFont("Futura", font_size))
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-
 
 
 

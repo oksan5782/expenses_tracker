@@ -64,6 +64,6 @@ class AddIncomeWindow(QWidget):
             success_msg = QMessageBox.information(self, "Information", "Income value added")
             
             # Update balance
-            self.main_window.current_month_donut_chart.update_balance()
+            self.main_window.current_month_donut_chart.refresh_donut_chart()
             # GO BACK TO MAIN WINDOW
             self.close()

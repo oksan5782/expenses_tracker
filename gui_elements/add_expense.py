@@ -101,9 +101,9 @@ class AddExpenseWindow(QWidget):
             success_msg = QMessageBox.information(self, "Information", message)
             
             # Repaint graph, categories view and balance windows
-            self.main_window.stacked_bar_chart.refresh_chart()
+            self.main_window.stacked_bar_chart.refresh_bar_chart()
             self.main_window.update_categories_area()
-            self.main_window.current_month_donut_chart.update_balance()
+            self.main_window.current_month_donut_chart.refresh_donut_chart()
 
             # Go back to main window
             self.close()
