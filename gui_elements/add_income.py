@@ -51,9 +51,6 @@ class AddIncomeWindow(QWidget):
 
 
     def add_income(self, amount_line_edit, date):
-        print("Input value is " + str(amount_line_edit) + " " + str(date))
-        # VALIDATE USER INPUT 
-
         # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
         result, message = add_income_into_db(self.user_id, date, amount_line_edit)
 

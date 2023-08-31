@@ -150,7 +150,6 @@ def get_monthly_income(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
     current_month = datetime.now().strftime("%Y-%m")
-    print(current_month)
 
     # No need to validate date sinse its taken from Calendar widget
     try:
@@ -162,7 +161,6 @@ def get_monthly_income(user_id):
         cursor.execute(query, values)
         result = cursor.fetchone()[0]
         cursor.close()
-        print(result)
         # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
@@ -264,10 +262,10 @@ def get_last_start_date_of_oldest_record(user_id):
         if not results:
             today = datetime.today()
             first_date_of_month = today.replace(day=1)
-            return first_date_of_month
+            return (False, first_date_of_month)
 
         # Finally will be executed after 'finally' statements, so return can be made
-        return convert_to_date_time(results)
+        return (True, convert_to_date_time(results))
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
@@ -405,6 +403,153 @@ def get_top_10_category_expenses(user_id):
         if sqliteConnection:
             sqliteConnection.close()             
 
+
+def get_yearly_expenses_summary(user_id, start_date, end_date):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor() 
+            
+        query = """
+            SELECT strftime('%Y', date) AS year, 
+            SUM(amount) AS total_expenses
+            FROM expense
+            WHERE user_id = ? AND date >= ? AND date <= ?
+            GROUP BY year
+        """
+        
+        # cursor.execute(query, (user_id, start_date, end_date))  
+        cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
+          
+        expenses_sum = cursor.fetchall()
+        expenses_by_year = {str(year): 0 for year in range(start_date.year, end_date.year + 1)}
+        for row in expenses_sum:
+            year, total_expenses = row
+            expenses_by_year[year] = total_expenses
+        return expenses_by_year
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close() 
+
+
+
+def get_yearly_income_summary(user_id, start_date, end_date):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    try:
+        cursor = sqliteConnection.cursor() 
+            
+        query = """
+            SELECT strftime('%Y', date) AS year, 
+            SUM(amount) AS total_expenses
+            FROM income
+            WHERE user_id = ? AND date >= ? AND date <= ?
+            GROUP BY year
+        """
+        
+        # cursor.execute(query, (user_id, start_date, end_date))  
+        cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
+          
+        income_sum = cursor.fetchall()
+        income_by_year = {str(year): 0 for year in range(start_date.year, end_date.year + 1)}
+        for row in income_sum:
+            year, total_income = row
+            income_by_year[year] = total_income
+        return income_by_year
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+            
+def get_monthly_expenses_summary(user_id, start_date, end_date):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor() 
+            
+        query = """
+            SELECT strftime('%Y-%m', date) AS month, 
+            SUM(amount) AS total_expenses
+            FROM expense
+            WHERE user_id = ? AND date >= ? AND date <= ?
+            GROUP BY month
+        """
+        
+        # cursor.execute(query, (user_id, start_date, end_date))  
+        cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
+          
+        expenses_sum = cursor.fetchall()
+
+        # Create a defaultdict to store expenses by month
+        expenses_by_month = defaultdict(float)
+
+        current_date = start_date
+        while current_date <= end_date:
+            year_month = current_date.strftime("%Y-%m")
+            expenses_by_month[year_month] = 0.0
+            current_date += timedelta(days=30)  # Assuming roughly 30 days per month
+
+        # Iterate through expenses_sum and update the expenses_by_month dictionary
+        for month, total_expenses in expenses_sum:
+            date = datetime.strptime(month, "%Y-%m")
+            if start_date <= date <= end_date:
+                expenses_by_month[month] += total_expenses
+
+        expenses_dict_by_month = dict(reversed(expenses_by_month.items()))
+        return expenses_dict_by_month
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close() 
+
+
+def get_monthly_income_summary(user_id, start_date, end_date):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor() 
+            
+        query = """
+            SELECT strftime('%Y-%m', date) AS month, 
+            SUM(amount) AS total_expenses
+            FROM income
+            WHERE user_id = ? AND date >= ? AND date <= ?
+            GROUP BY month
+        """
+        
+        # cursor.execute(query, (user_id, start_date, end_date))  
+        cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
+        income_sum = cursor.fetchall()
+
+        # Create a defaultdict to store expenses by month
+        income_by_month = defaultdict(float)
+
+        current_date = start_date
+        while current_date <= end_date:
+            year_month = current_date.strftime("%Y-%m")
+            income_by_month[year_month] = 0.0
+            current_date += timedelta(days=30)  # Assuming roughly 30 days per month
+    
+
+        # Iterate through expenses_sum and update the expenses_by_month dictionary
+        for month, total_income in income_sum:
+            date = datetime.strptime(month, "%Y-%m")
+            if start_date <= date <= end_date:
+                income_by_month[month] += total_income
+        
+        income_dict_by_month = dict(reversed(income_by_month.items()))
+        return income_dict_by_month
+
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
 
 # Add Expense after Add Expense button press
 def add_expense_into_db(user_id, type, name, date, category, amount):
@@ -662,7 +807,6 @@ def add_income_into_db(user_id, date, amount):
         return (False, message)
     try:
         cursor = sqliteConnection.cursor()
-        print("Database created and Successfully Connected to SQLite")
         values = { 'date' : date,
                    'amount' : float(amount),
                    'user_id' : user_id}
@@ -680,13 +824,6 @@ def add_income_into_db(user_id, date, amount):
     finally:
         if sqliteConnection:
             sqliteConnection.close()
-
-
-
-# Update monthly limit in users table
-def set_new_limit(user_id, new_limit_value):
-    print("Limit updated")
-    print(str(user_id) + " " + str(new_limit_value))
 
 
 # Select data by user_id and category as a tuple (expense name, expense date, amount)

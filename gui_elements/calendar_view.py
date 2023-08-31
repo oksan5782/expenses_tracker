@@ -64,7 +64,7 @@ class CustomCalendarWidget(QCalendarWidget):
         max_date = get_last_day_of_current_month()
 
         # Get first day of the month of the earliest record in DB
-        min_date = get_last_start_date_of_oldest_record(self.user_id)
+        min_date = get_last_start_date_of_oldest_record(self.user_id)[1]
 
         # Set min and max days to display in the calendar
         self.setMaximumDate(QDate(max_date.year, max_date.month, max_date.day))

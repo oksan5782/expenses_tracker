@@ -72,7 +72,7 @@ class MainScreen(QWidget):
         change_limit_button = AutoShrinkButton("View Balance Data", 220, "#FFB499")
         change_limit_button.clicked.connect(self.change_limit)
 
-        self.limit_window = ViewBalanceWindow(self.user_id)
+        self.limit_window = None
         self.calendar_window = None
 
         # Calender Button
@@ -283,6 +283,7 @@ class MainScreen(QWidget):
 
     # change monthly budget (limit)
     def change_limit(self):
+        self.limit_window = ViewBalanceWindow(self.user_id)
         self.limit_window.show()
 
 
@@ -471,7 +472,6 @@ class StackedBarChart(QWidget):
             self.bar_chart_layout.addWidget(self.chart_view)
         
         else:
-            print('No result')
             self.no_results_label = QLabel("No data in for the last 6 month")
             self.no_results_label.setFont(QFont('Futura', 15))
             self.no_results_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
