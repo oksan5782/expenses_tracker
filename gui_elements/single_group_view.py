@@ -93,7 +93,7 @@ class DisplayGroupList(QMainWindow):
 
 
                 # Button to remove record from the group
-                remove_this_group_record = QPushButton("Remove", self)
+                remove_this_group_record = QPushButton("Delete", self)
                 remove_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
                 remove_this_group_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
                 remove_this_group_record.setFont(QFont("Futura", 16))

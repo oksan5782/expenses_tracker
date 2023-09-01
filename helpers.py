@@ -193,6 +193,45 @@ def get_this_month_expenses(user_id):
         if sqliteConnection:
             sqliteConnection.close()
 
+def get_user_expenses(user_id):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
+        query = """SELECT name, category, date, transaction_type, amount
+                FROM expense 
+                WHERE user_id = :user_id 
+                ORDER BY date DESC"""
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchall()
+        cursor.close()
+
+        # Finally will be executed after 'finally' statements, so return can be made
+        return result
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+def get_user_income(user_id):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
+        query = """SELECT date, amount 
+                FROM income 
+                WHERE user_id = :user_id 
+                ORDER BY date DESC"""
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchall()
+        cursor.close()
+
+        # Finally will be executed after 'finally' statements, so return can be made
+        return result
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
 
 
 
@@ -876,11 +915,6 @@ def get_expenses_by_date_range(user_id, start_date, end_date):
             sqliteConnection.close()
 
 
-def remove_record(user_id, category, name, date, amount):
-    print("Removing")
-    print(str(user_id) + " " + category + " " + name + " " + date + " " + str(amount))
-
-
 
 def remove_record_from_the_group(user_id, expense_name, category, date, transaction_type, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
@@ -984,8 +1018,126 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
         if sqliteConnection:
             sqliteConnection.close()
     
-    print(record_before_editing_list)
-    print(record_after_editing_list)
+
+def edit_income_record(user_id, record_before_editing_list, record_after_editing_list):
+    # Parse values fron lists
+    values = {
+        'user_id' : user_id,
+        'prev_date' : record_before_editing_list[0],
+        'prev_amount' : record_before_editing_list[1],
+
+        'new_date' : record_after_editing_list[0], 
+        'new_amount' : record_after_editing_list[1]
+    }
+
+    # Validate date format
+    if not is_valid_datetime_format(values['new_date']):
+        message = "Invalid Date Format. Please use YYYY-MM-DD"
+        return (False, message)
+
+    # check if amount is a positive numeric value
+    if not is_valid_numeral(values['new_amount']):
+        message = "Invalid amount"
+        return (False, message)
+
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+    try:
+        cursor = sqliteConnection.cursor()
+        query = """UPDATE income
+                SET date = :new_date,
+                    amount = :new_amount
+                WHERE user_id = :user_id
+                    AND date = :prev_date
+                    AND amount = :prev_amount;
+                        """
+        cursor.execute(query, values)
+        sqliteConnection.commit()
+        cursor.close()
+        # Finally will be executed after 'finally' statements, so return can be made
+        message = "Income updated"
+        return (True, message)
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
+
+def remove_record(user_id, expense_name, category, date, transaction_type, amount):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    try:
+        cursor = sqliteConnection.cursor()
+
+        values = {'user_id' : user_id,
+                  'name' : expense_name,
+                  'category': category,
+                  'date' : date,
+                  'transaction_type' : transaction_type,
+                  'amount' : float(amount)
+                  }
+
+        delete_query = """
+        DELETE FROM expense
+        WHERE user_id = :user_id
+            AND name = :name
+            AND category = :category
+            AND date = :date
+            AND transaction_type = :transaction_type
+            AND amount = :amount;
+        """
+        
+        # Execute the update query for each dictionary in the list
+        cursor.execute(delete_query, values)
+
+        # Commit the changes and close the connection
+        sqliteConnection.commit()
+        cursor.close()
+
+        # Finally will be executed after 'finally' statements, so return can be made
+        return True
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
+def remove_income_record(user_id, date, amount):
+    sqliteConnection = sqlite3.connect('expense_tracker.db')
+
+    try:
+        cursor = sqliteConnection.cursor()
+
+        values = {'user_id' : user_id,
+                  'date' : date,
+                  'amount' : float(amount)
+                  }
+
+        delete_query = """
+        DELETE FROM income
+        WHERE user_id = :user_id
+            AND date = :date
+            AND amount = :amount;
+        """
+        
+        # Execute the update query for each dictionary in the list
+        cursor.execute(delete_query, values)
+
+        # Commit the changes and close the connection
+        sqliteConnection.commit()
+        cursor.close()
+
+        # Finally will be executed after 'finally' statements, so return can be made
+        return True
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+
+
 
 
 # Select date by user_id and group

@@ -283,7 +283,7 @@ class MainScreen(QWidget):
 
     # change monthly budget (limit)
     def change_limit(self):
-        self.limit_window = ViewBalanceWindow(self.user_id)
+        self.limit_window = ViewBalanceWindow(self.user_id, self)
         self.limit_window.show()
 
 
@@ -328,7 +328,7 @@ class MainScreen(QWidget):
                 # Repaint other window
                 self.stacked_bar_chart.refresh_bar_chart()
                 self.update_categories_area()
-                self.current_month_donut_chart.refresh_bar_chart()
+                self.current_month_donut_chart.refresh_donut_chart()
 
                 # Display successful upload message
                 upload_complete_msg = QMessageBox.information(self, "Information", message)
