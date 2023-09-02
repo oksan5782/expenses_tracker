@@ -3,10 +3,12 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QComboBox,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
-# Import data insertion function
+
+# Import data and functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import add_expense_into_db, ALL_POSSIBLE_CATEGORIES_LIST, ALL_EXPENSE_TYPES
+
 
 class AddExpenseWindow(QWidget):
     def __init__(self, user_id, main_window):
@@ -18,66 +20,62 @@ class AddExpenseWindow(QWidget):
 
         layout = QFormLayout()
 
-        # Row 1 - Name of the expense
+        # Row 1 - Get name of the expense from the user
         label_name = QLabel("Expense Name:")
         label_name.setFont(QFont('Futura', 16))
     
-        # QLine edit to fill out name of the expense
         self.name_line_edit = QLineEdit()
         self.name_line_edit.setStyleSheet('margin: 8 0')
 
         layout.addRow(label_name, self.name_line_edit)
 
-        # Row 2 - Date 
+        # Row 2 - Get exoense date from the user
         label_date = QLabel("Expense Date (YYYY-MM-DD)")
         label_date.setFont(QFont('Futura', 16))
 
-        # QLine edit to enter input
         self.date_line_edit = QLineEdit()
         self.date_line_edit.setStyleSheet('margin: 8 0')
 
         layout.addRow(label_date, self.date_line_edit)
 
-        # Row 3 - Type 
+        # Row 3 - Get expense type from the user 
         label_type = QLabel("Expense Type:")
         label_type.setFont(QFont('Futura', 16))
 
-        # Selection box to enter input
         self.type = QComboBox()
-        # Add types
+
+        # Add type options
         self.type.addItems(ALL_EXPENSE_TYPES)
-        # STYLE COMBOBOX
+
+        # Style type selection combo box
         self.type.setFixedHeight(25)
         self.type.setStyleSheet("QComboBox QAbstractItemView {"
                        "selection-color: #2E8B57"
                        "}")
         layout.addRow(label_type, self.type)
 
-
-        # Row 4 - Category
+        # Row 4 - Get expense category data from the user
         label_category = QLabel("Expense Category:")
         label_category.setFont(QFont('Futura', 16))
         
-        # Selection box to enter input
         self.category = QComboBox()
-        # ADD MORE CATEGORIES
+
+        # Add categories options
         self.category.addItems(ALL_POSSIBLE_CATEGORIES_LIST)
-        # STYLE COMBOBOX
+
+        # Style combo box
         self.category.setFixedHeight(25)
         self.category.setStyleSheet("QComboBox QAbstractItemView {"
                        "selection-color: #2E8B57"
                        "}")
         layout.addRow(label_category, self.category)
 
-        # Row 5 - Amount
+        # Row 5 - Get expense amount data from the user 
         label_amount = QLabel("Expense Amount ($):")
         label_amount.setFont(QFont('Futura', 16))
 
-        # QLine edit to enter input
         self.amount_line_edit = QLineEdit()
-
         layout.addRow(label_amount, self.amount_line_edit)
-
 
         # Upload input button
         add_expense_button = QPushButton("Add")
@@ -87,17 +85,18 @@ class AddExpenseWindow(QWidget):
         layout.addRow(add_expense_button)
         self.setLayout(layout)
 
-
+    # Add expense to the database and update the widgets accordingly
     def add_expense(self, name, amount_line_edit, date, category, type):
 
-        # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
+        # Try inserting the record into database
         result, message = add_expense_into_db(self.user_id, type, name, date, category, amount_line_edit)
 
+        # Display a fail reason message in case of a failure
         if not result:
             cannot_add_msg = QMessageBox.information(self, "Information", message)
             
         else:
-            # IF VALIDATION PASSED Flush the message 
+            # If validation was  sucessful - flush the message 
             success_msg = QMessageBox.information(self, "Information", message)
             
             # Repaint graph, categories view and balance windows
@@ -105,6 +104,6 @@ class AddExpenseWindow(QWidget):
             self.main_window.update_categories_area()
             self.main_window.current_month_donut_chart.refresh_donut_chart()
 
-            # Go back to main window
+            # Go back to the main window
             self.close()
 

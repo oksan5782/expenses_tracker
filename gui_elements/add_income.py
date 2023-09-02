@@ -4,7 +4,7 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 
 
-# Import data insertion function
+# Import functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import add_income_into_db
@@ -20,21 +20,19 @@ class AddIncomeWindow(QWidget):
 
         layout = QFormLayout()
 
-        # ROW 1 - date
+        # ROW 1 - Get income date information
         label_date = QLabel("Income Date (YYYY-MM-DD):")
         label_date.setFont(QFont('Futura', 16))
 
-        # QLine edit to enter input
         self.label_date_line_edit = QLineEdit()
         self.label_date_line_edit.setStyleSheet('margin: 8 0')
 
         layout.addRow(label_date, self.label_date_line_edit)
 
-        # Row 2 - Amount
+        # Row 2 - Get income amount information
         label_amount = QLabel("Income Amount ($):")
         label_amount.setFont(QFont('Futura', 16))
 
-        # QLine edit to enter input
         self.amount_line_edit = QLineEdit()
         self.amount_line_edit.setStyleSheet('margin: 8 0')
 
@@ -50,10 +48,13 @@ class AddIncomeWindow(QWidget):
         self.setLayout(layout)
 
 
+    # Add income to the database and update the widgets accordingly
     def add_income(self, amount_line_edit, date):
-        # IF VALIDATION PASSED INSERT INCOME VALUE AND TIME TO THE RELEVANT TABLE
+
+        # Try inserting the values into the database
         result, message = add_income_into_db(self.user_id, date, amount_line_edit)
 
+        # Display a fail reason message in case of a failure
         if not result:
             cannot_add_income_msg = QMessageBox.information(self, "Information", message)
             
@@ -62,5 +63,6 @@ class AddIncomeWindow(QWidget):
             
             # Update balance
             self.main_window.current_month_donut_chart.refresh_donut_chart()
-            # GO BACK TO MAIN WINDOW
+            
+            # Go back to the main window
             self.close()

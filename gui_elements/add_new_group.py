@@ -2,29 +2,36 @@ from PyQt6.QtWidgets import (QWidget, QMainWindow, QLabel, QPushButton, QComboBo
                              QVBoxLayout, QHBoxLayout, QFormLayout, 
                              QLineEdit, QCalendarWidget, QMessageBox,
                              QTableWidget, QTableWidgetItem, QHeaderView,
-                             QDialog, QCheckBox)
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QTextCharFormat, QColor
+                             QCheckBox)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QTextCharFormat, QColor
 
 import datetime
 
-
-# Import data insertion function
+# Import data and functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import get_expenses_by_category, get_expenses_by_date_range, create_group, ALL_POSSIBLE_CATEGORIES_LIST 
+
 
 class AddGroupWindow(QMainWindow):
     def __init__(self, user_id, main_window):  
         super().__init__() 
         self.user_id = user_id
         self.main_window = main_window
-        self.new_group_data = []
         self.setWindowTitle("Create New Group")
         self.setStyleSheet('background-color: #F5FFFA')
         self.setGeometry(500, 200, 350, 300)
+
+        # Get list of records to select the ones belonging to a new group
         self.group_selection_data = []
+
+        # Store the name of the group before creation
         self.group_name = ""
+
+        # Records that belong to the new group
+        self.new_group_data = []
+
         self.create_widget()
 
 
@@ -34,25 +41,25 @@ class AddGroupWindow(QMainWindow):
         initial_creation_layout = QFormLayout()
         initial_creation_layout.setSpacing(15)
 
-        # Row 1 - create a title
+        # Row 1 - Get user input for a group title
         label_group_name = QLabel("Group Name:")
         label_group_name.setFont(QFont('Futura', 16))
     
-        # QLine edit to fill out name of the expense
         self.name_group_line_edit = QLineEdit()
         self.name_group_line_edit.setStyleSheet('margin: 8 0')
 
         initial_creation_layout.addRow(label_group_name, self.name_group_line_edit)
         
-        # Row 2 - label to explain selection
+        # Row 2 - Label to explain selection options
         selection_options = QLabel("Choose selection option")
         selection_options.setFont(QFont('Futura', 16))
+
         hbox_layout = QHBoxLayout()
         hbox_layout.addWidget(selection_options, alignment=Qt.AlignmentFlag.AlignCenter)
 
         initial_creation_layout.addRow(hbox_layout)
 
-        # Row 3 - buttons to choose by date or by category
+        # Row 3 - Buttons to choose by date or by category
         create_by_calendar_button = QPushButton("By Calendar")
         create_by_calendar_button.setCursor(Qt.CursorShape.PointingHandCursor)
         create_by_calendar_button.setFixedWidth(155)
@@ -75,12 +82,11 @@ class AddGroupWindow(QMainWindow):
         self.calendar_selection = QWidget()
         calender_selection_layout = QVBoxLayout()
 
-        # Label
         calendar_label = QLabel("Select Date Range")
         calendar_label.setFont(QFont('Futura', 16))
         calender_selection_layout.addWidget(calendar_label)
 
-        # Calendar itself
+        # Insert calendar widget 
         self.calendar = CustomCalendar()
         calender_selection_layout.addWidget(self.calendar)
 
@@ -94,22 +100,21 @@ class AddGroupWindow(QMainWindow):
         self.calendar_selection.setLayout(calender_selection_layout)
 
 
-
         # Category selection view
         self.category_selection = QWidget()
         category_selection_layout = QVBoxLayout()
         category_selection_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         category_selection_layout.setSpacing(70)
 
-        # Label
         category_label = QLabel("Select Category")
         category_label.setFont(QFont('Futura', 16))
         category_selection_layout.addWidget(category_label)
 
-        # QComboBox selection itself
+        # Present category options with combo box
         self.list_expenses_selection = QComboBox()
         self.list_expenses_selection.addItems(ALL_POSSIBLE_CATEGORIES_LIST)
-        # Style Combobox
+
+        # Style Combo Box
         self.list_expenses_selection.setFixedHeight(50)
         self.list_expenses_selection.setStyleSheet("QComboBox QAbstractItemView {""selection-color: #2E8B57""}")
         category_selection_layout.addWidget(self.list_expenses_selection)
@@ -124,12 +129,11 @@ class AddGroupWindow(QMainWindow):
         self.category_selection.setLayout(category_selection_layout)
         
 
-
         # Table for selection values that belong to the group
         self.selection_table_window = QWidget()
     
 
-
+    # Button press for choosing to create a group by calendar
     def select_group_by_calendar(self):
         if self.name_group_line_edit.text():
             self.group_name = self.name_group_line_edit.text()
@@ -139,14 +143,15 @@ class AddGroupWindow(QMainWindow):
             no_group_name_msg = QMessageBox.information(self, "Information", "Group name is missing")
 
 
+    # Button press to display expenses within selected date range
     def generate_group_selection_list_by_date(self):
         if self.calendar.from_date and self.calendar.to_date:
 
-            # FIX DATA FORMAT to pass to a search function
+            # Update data format 
             from_date = datetime.date(self.calendar.from_date.year(), self.calendar.from_date.month(), self.calendar.from_date.day())
             to_date = datetime.date(self.calendar.to_date.year(), self.calendar.to_date.month(), self.calendar.to_date.day())
 
-            # Select data 
+            # Extract data from the database
             extracted_data = get_expenses_by_date_range(self.user_id, from_date, to_date)
             self.group_selection_data = extracted_data
 
@@ -231,15 +236,12 @@ class AddGroupWindow(QMainWindow):
 
             self.setCentralWidget(self.selection_table_window)
 
-        # Show list with a checkbox selected by date
         else:
             no_date_range__selected_msg = QMessageBox.information(self, "Information", "No range selected")
 
 
-
-
+    # Button press for choosing to create a group by category
     def select_group_by_category(self):
-        # Show categories list with buttons or QComboBox, let user choose
         if self.name_group_line_edit.text():
             self.group_name = self.name_group_line_edit.text()
             self.initial_creation.hide()
@@ -248,9 +250,10 @@ class AddGroupWindow(QMainWindow):
             no_group_name_msg = QMessageBox.information(self, "Information", "Group name is missing")
 
 
-
+    # Button press to display expenses within selected caategory
     def generate_group_selection_list_by_category(self, category):
-        # Select data 
+
+        # Extract data from the database 
         extracted_data = get_expenses_by_category(self.user_id, category)
         self.group_selection_data = extracted_data
 
@@ -260,7 +263,7 @@ class AddGroupWindow(QMainWindow):
         
         table_selection_layout = QVBoxLayout()
 
-        # Insert a table
+        # Insert the table
         self.table = QTableWidget()
         stylesheet = """
         QTableWidget {
@@ -335,35 +338,38 @@ class AddGroupWindow(QMainWindow):
         self.setCentralWidget(self.selection_table_window)
         
 
-    # Creating a group - marking rows with the group_id
+    # Creating a group - Adding group_id to the record rows with checked checkbox
     def create_group(self):
         row_count = self.table.rowCount()
         column_count = self.table.columnCount()
         selected_rows_data = []
 
         for row in range(row_count):
-            # I is the column with checkbox
+            # Get the state of the cell with checkbox
             checkbox = self.table.cellWidget(row, 5)
             if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
+                # Get record information and insert it into the grour records list
                 row_data = [self.table.item(row, column).text() for column in range(5)]
                 selected_rows_data.append(row_data)
+
         # Error message for lack of selection
         if not selected_rows_data:
             no_rows_selected_msg = QMessageBox.warning(self, "Information", "Nothing was selected")
         
         else:
-            # Get name of the group and create it create group by passing selected_rows_data and group title
+            # Create a group by passing selected_rows_data and a group title
             sql_return_value = create_group(self.user_id, self.group_name, selected_rows_data)
-            # IF VALIDATION PASSED Flush the message 
+
+            # If validation passed - flush the message 
             if sql_return_value == 0:
 
-                # Update main view
+                # Update main window
                 self.main_window.update_groups_area()
 
                 success_msg = QMessageBox.information(self, "Information", "Group created")
                 self.close()
 
-
+# Modify calendar widget to allow date range selection
 class CustomCalendar(QCalendarWidget):
     def __init__(self):
         super().__init__()
@@ -383,7 +389,7 @@ class CustomCalendar(QCalendarWidget):
     def select_day_range(self, date_value):
         self.highlight_range(QTextCharFormat())   
 
-        # Check if modifier is pressed
+        # Adjust selection to pressed dates
         if self.from_date == date_value:
             self.from_date = None
             self.to_date = None
@@ -395,14 +401,14 @@ class CustomCalendar(QCalendarWidget):
             self.highlight_range(self.highlighter_format)
 
 
-    # Apply style to selected time frame
+    # Apply style to selected a time frame
     def highlight_range(self, format):
         if self.from_date and self.to_date:
-            # Find out which one is smaller
+            # Find out which date is earlier
             start = min(self.from_date, self.to_date)
             end = max(self.from_date, self.to_date)
 
-            # Apply format
+            # Apply highlight format to the span of the date range
             while end >= start:
                 self.setDateTextFormat(start, format)
                 start = start.addDays(1)
