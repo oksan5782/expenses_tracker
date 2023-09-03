@@ -7,11 +7,10 @@ from PyQt6.QtGui import QFont
 from gui_elements.main_window import MainScreen
 from gui_elements.register import RegisterWindow
 
-# Import data insertion function
+# Import functions interacting with the database
 import sys
 sys.path.append('../helpers')
 from helpers import log_in_check
-
 
 
 class LogInWindow(QWidget):
@@ -24,19 +23,20 @@ class LogInWindow(QWidget):
         layout = QFormLayout()
         layout.setFormAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Label names
+        # Name labels for the user input
         label_username = QLabel("Username:")
         label_password = QLabel("Password:")
         label_username.setFont(QFont('Futura', 16))
         label_password.setFont(QFont('Futura', 16))
 
-        # QLine edits to enter input
+        # QLine edits for user input
         self.username_line_edit = QLineEdit()
         self.password_line_edit = QLineEdit()
-        # Make password field in echo mode - display *
+
+        # Use echo mode for the password field - display *
         self.password_line_edit.setEchoMode(QLineEdit.EchoMode.Password)  
 
-        # Insert labels and line edits into layout
+        # Insert labels and line edits into the layout
         layout.addRow(label_username, self.username_line_edit)
         layout.addRow(label_password, self.password_line_edit)
 
@@ -73,7 +73,7 @@ class LogInWindow(QWidget):
     
 
     def register_user(self):
-        # TRANSFER USER TO A REGISTER WINDOW
+        # Transfer user to the registration window
         self.register_window = RegisterWindow(self)
         self.register_window.show()
         self.hide()

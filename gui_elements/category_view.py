@@ -1,12 +1,12 @@
 
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QTableWidget, 
+from PyQt6.QtWidgets import (QMainWindow, QTableWidget, 
                             QTableWidgetItem, QPushButton, QWidget, 
                             QVBoxLayout, QHeaderView, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor
 
 
-# Import data insertion function
+# Import functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import get_expenses_by_category, edit_record
@@ -64,10 +64,10 @@ class DisplayCategoryList(QMainWindow):
         header.setSectionsClickable(True)
         header.sectionClicked.connect(self.header_clicked)
 
-        # GETTING DATA FROM THE DATABASE
+        # Extract data for the selected category from the database
         self.current_category_expenses_list = get_expenses_by_category(self.user_id, self.category_title)
         
-        # Check for null
+        # Check for the absence of records 
         if not self.current_category_expenses_list:
             self.table_widget.setRowCount(1)
             self.table_widget.setSpan(0, 0, 1, 5)
@@ -91,12 +91,12 @@ class DisplayCategoryList(QMainWindow):
         self.setCentralWidget(outer_frame)
         self.show()
     
-
+    # Sort rows in the table according to the clicked column header
     def header_clicked(self, logical_index):
-        # Sort by Name
+        # Sort by name
         if logical_index == 0:
             self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[0])
-        # Sort by Date
+        # Sort by date
         if logical_index == 1:
             self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[1], reverse=True)
         # Sort by type
@@ -147,11 +147,11 @@ class DisplayCategoryList(QMainWindow):
     def close_category_table(self):
         self.hide()
     
-    # Edit this record functionality
+
+    # Edit selected row
     def edit_this_expense_record(self, row_index, checked):
         if checked:  # When the "Edit" button is checked
-
-            # Collect data to find the row in DB
+            # Collect data to find the record in the database
             self.row_data_before_editing = []
             for column in range(4):
                 label_item = self.table_widget.item(row_index, column)
@@ -167,7 +167,7 @@ class DisplayCategoryList(QMainWindow):
 
         else:  # When the "Apply" button is unchecked
             edited_row_data = []
-            # Retrieve data from QTableWidgetItem and insert the edited data
+            # Retrieve data from QTableWidgetItem and insert into the list fof updated values
             for column in range(4):
                 label_item = self.table_widget.item(row_index, column)
                 if label_item:
@@ -181,27 +181,25 @@ class DisplayCategoryList(QMainWindow):
             edit_button.setText("Edit")
 
             
-            # Add category to two list for updating in DB to match pattern
-            # (user_id, name, category, date, amount)
+            # Add category to tho list of updated values to match the pattern (user_id, name, category, date, amount)
             self.row_data_before_editing.insert(1, self.category_title)
             edited_row_data.insert(1, self.category_title)
             
-            # Update record in DB 
+            # Update record in the database 
             result, message = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
 
             if not result:
                 cannot_edit_msg = QMessageBox.information(self, "Information", message)
             
-            # If validaation passed 
+            # If validation passed 
             else:
                 success_msg = QMessageBox.information(self, "Information", message)
 
-                # Repaint graph, categories view and balance windows
+                # Repaint graph, categories view and balance widgets in the main window
                 self.main_window.stacked_bar_chart.refresh_bar_chart()
                 self.main_window.update_categories_area()
                 self.main_window.current_month_donut_chart.refresh_donut_chart()
 
-                # Update table value
                 self.table_widget.update()
 
 

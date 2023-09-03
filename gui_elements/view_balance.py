@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor
 
-# Import data insertion function
+# Import functions interacting with the database
 import sys
 sys.path.append('../helpers')
 from helpers import (get_last_start_date_of_oldest_record, get_last_day_of_current_month, 
@@ -49,7 +49,6 @@ class ViewBalanceWindow(QWidget):
 
         # Add layout
         self.main_layout = QVBoxLayout()
-
         self.content_layout = QHBoxLayout()
 
         # Left section with year table and income/expense view
@@ -57,7 +56,6 @@ class ViewBalanceWindow(QWidget):
     
         # History time range
         self.oldest_record = get_last_start_date_of_oldest_record(self.user_id)
-
         self.latest_date = get_last_day_of_current_month()
 
         # Yearly summary table
@@ -65,6 +63,7 @@ class ViewBalanceWindow(QWidget):
         self.fill_yearly_table()
         left_layout.addWidget(self.year_table)
 
+        # Button to view list of expenses
         self.expense_list = QPushButton("View Expenses List")
         self.expense_list.setCursor(Qt.CursorShape.PointingHandCursor)
         self.expense_list.setFixedWidth(240)
@@ -74,6 +73,7 @@ class ViewBalanceWindow(QWidget):
 
         left_layout.addWidget(self.expense_list, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Button to view the list of income records
         self.income_list = QPushButton("View Income List")
         self.income_list.setCursor(Qt.CursorShape.PointingHandCursor)
         self.income_list.setFixedWidth(240)
@@ -104,7 +104,7 @@ class ViewBalanceWindow(QWidget):
         self.setLayout(self.main_layout)
 
 
-    # Insert values into yearly table
+    # Insert values into the yearly table
     def fill_yearly_table(self):
         self.year_table.verticalHeader().setVisible(False)
         self.year_table.setStyleSheet(self.table_stylesheet)
@@ -113,13 +113,13 @@ class ViewBalanceWindow(QWidget):
         self.year_table.setHorizontalHeaderLabels(["Year", "Income", "Expense", "Balance"])
         self.year_table.verticalHeader().setDefaultSectionSize(40)
 
-        # If table is empty return no data
+        # If table is empty
         if not self.oldest_record[0]:
             self.year_table.setRowCount(1)
             self.year_table.setSpan(0, 0, 1, 4)
             self.year_table.setItem(0, 0, QTableWidgetItem("No Data"))
         else:
-            # Get expenses dictionaries
+            # Get expense dictionaries
             yearly_expense_summaries = get_yearly_expenses_summary(self.user_id, self.oldest_record[1], self.latest_date)
 
             # Get income dictionaries
@@ -136,17 +136,16 @@ class ViewBalanceWindow(QWidget):
 
             # Set the row count of the table
             num_rows = len(combined_list)
-
             self.year_table.setRowCount(num_rows)
             
-            # Populate the table
+            # Populate yearly table
             for i, yearly_record in enumerate(combined_list):
                 year = yearly_record[0]
                 income = int(yearly_record[1])
                 expense = int(yearly_record[2])
                 difference = int(yearly_record[3])
 
-                # Insert extracted data into a row
+                # Insert extracted data into the row
                 self.year_table.setItem(i, 0, QTableWidgetItem(year))
                 self.year_table.setItem(i, 1, QTableWidgetItem(str(income)))
                 self.year_table.setItem(i, 2, QTableWidgetItem(str(expense)))
@@ -155,7 +154,7 @@ class ViewBalanceWindow(QWidget):
             self.year_table.resizeColumnsToContents()
 
 
-    # Populate monthly table
+    # Insert data into a monthly table
     def fill_montly_table(self):
         self.monthly_table.verticalHeader().setVisible(False)
         self.monthly_table.setStyleSheet(self.table_stylesheet)
@@ -164,13 +163,13 @@ class ViewBalanceWindow(QWidget):
         self.monthly_table.setHorizontalHeaderLabels(["Month", "Income", "Expense", "Balance"])
         self.monthly_table.verticalHeader().setDefaultSectionSize(42)
 
-            # If table is empty return no data
+        # If table is empty
         if not self.oldest_record[0]:
             self.monthly_table.setRowCount(1)
             self.monthly_table.setSpan(0, 0, 1, 4)
             self.monthly_table.setItem(0, 0, QTableWidgetItem("No Data"))
         else:
-            # Get expenses dictionaries
+            # Get expense dictionaries
             monthly_expense_summaries = get_monthly_expenses_summary(self.user_id, self.oldest_record[1], self.latest_date)
             
             # Get income dictionaries
@@ -189,7 +188,7 @@ class ViewBalanceWindow(QWidget):
             num_rows = len(combined_list)
             self.monthly_table.setRowCount(num_rows)
             
-            # Populate the table
+            # Populate the monthly table
             for i, monthly_record in enumerate(combined_list):
                 year = monthly_record[0]
                 income = int(monthly_record[1])
@@ -204,23 +203,22 @@ class ViewBalanceWindow(QWidget):
 
             self.monthly_table.resizeColumnsToContents()
 
-
+    # "View expense" button click
     def view_expense_list(self):
         self.expenses_list_window = ExpenseListWindow(self.user_id, self.table_stylesheet, self.main_window)
         self.expenses_list_window.show()
 
-
+    # "View income" button click
     def view_income_list(self):
         self.income_list_window = IncomeListWindow(self.user_id, self.table_stylesheet, self.main_window)
         self.income_list_window.show()
 
-
+    # Go back to the main window
     def close_balanse_window(self):
-        # GO BACK TO MAIN WINDOW
         self.close()
 
 
-
+# Table with the list of expenses
 class ExpenseListWindow(QWidget):
     def __init__(self, user_id, stylesheet, main_window):
         super().__init__()  
@@ -231,6 +229,7 @@ class ExpenseListWindow(QWidget):
         self.setWindowTitle("Expense")
         self.setStyleSheet('background-color: #F5FFFA')
         self.init_list_ui()
+
 
     def init_list_ui(self):
         outer_frame_layout = QVBoxLayout()
@@ -246,10 +245,10 @@ class ExpenseListWindow(QWidget):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
-        # GETTING DATA FROM THE DATABASE
+        # Get records from the database
         self.expenses_list = get_user_expenses(self.user_id)
 
-        # Check for null
+        # Check for the absence of the records
         if not self.expenses_list:
             self.table_widget.setRowCount(1)
             self.table_widget.setSpan(0, 0, 1, 7)
@@ -281,7 +280,7 @@ class ExpenseListWindow(QWidget):
             transaction_type = expense_record[3]
             amount = expense_record[4]
 
-            # Insert extracted data into a row 
+            # Insert extracted data into the table row 
             self.table_widget.insertRow(i)
             self.table_widget.setItem(i, 0, QTableWidgetItem(name))
             self.table_widget.setItem(i, 1, QTableWidgetItem(category))
@@ -297,18 +296,15 @@ class ExpenseListWindow(QWidget):
             edit_this_expense_record.setFont(QFont("Futura", 16))
             edit_this_expense_record.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
 
-
-            # Button to remove record from the group
+            # Button to remove the record from the database
             remove_this_expense_record = QPushButton("Delete", self)
             remove_this_expense_record.setCursor(Qt.CursorShape.PointingHandCursor)
             remove_this_expense_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
             remove_this_expense_record.setFont(QFont("Futura", 16))
             remove_this_expense_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
 
-
             self.table_widget.setCellWidget(i, 5, edit_this_expense_record)
             self.table_widget.setCellWidget(i, 6, remove_this_expense_record)
-
 
             # Set all labels as non-editable initially
             for column in range(5):
@@ -320,28 +316,30 @@ class ExpenseListWindow(QWidget):
 
     # Remove current record from the database
     def remove_this_expense_record(self, row):
-        # Collect data to find it in DB
+
+        # Collect data to find the record in the database
         row_data = [self.table_widget.item(row, column).text() for column in range(5)]
         sql_return_value = remove_record(self.user_id, row_data[0], row_data[1], row_data[2], row_data[3], row_data[4])
        
-        # Flush message about what was removed
+        # If the removal was successful
         if sql_return_value:
             success_msg = QMessageBox.information(self, "Information", "Record removed")
 
-            # Repaint graph, categories view and balance windows
+            # Repaint graph, categories view and balance widgets in the main window
             self.main_window.stacked_bar_chart.refresh_bar_chart()
             self.main_window.update_categories_area()
             self.main_window.update_groups_area()
             self.main_window.current_month_donut_chart.refresh_donut_chart()
 
-            # Update Group view
+            # Update expenses table
             self.table_widget.update()
 
-    # Edit record and update it in DB
+
+    # Edit record and update it in the database
     def edit_this_expense_record(self, row_index, checked):
         if checked:  # When the "Edit" button is checked
 
-            # Collect data to find the row in DB
+            # Collect data to find the record in the database
             self.row_data_before_editing = []
             for column in range(5):
                 label_item = self.table_widget.item(row_index, column)
@@ -357,7 +355,8 @@ class ExpenseListWindow(QWidget):
 
         else:  # When the "Apply" button is unchecked
             edited_row_data = []
-            # Retrieve data from QTableWidgetItem and print the edited data
+
+            # Retrieve data from QTableWidgetItem
             for column in range(5):
                 label_item = self.table_widget.item(row_index, column)
                 if label_item:
@@ -370,26 +369,28 @@ class ExpenseListWindow(QWidget):
             edit_button = self.table_widget.cellWidget(row_index, 5)
             edit_button.setText("Edit")
 
-            # Update record in DB 
+            # Update the record in the database 
             result, message = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
 
             if not result:
                 cannot_add_msg = QMessageBox.information(self, "Information", message)
             
             else:
-            # If the validation passed 
+                # If validation passed 
                 success_msg = QMessageBox.information(self, "Information", message)
 
-                # Repaint graph, categories view and balance windows
+                # Repaint graph, categories view and balance widgets of the main window
                 self.main_window.stacked_bar_chart.refresh_bar_chart()
                 self.main_window.update_categories_area()
                 self.main_window.update_groups_area()
                 self.main_window.current_month_donut_chart.refresh_donut_chart()
 
+
     def close_expense_table(self):
         self.hide()
 
 
+# Table with the list of income records
 class IncomeListWindow(QWidget):
     def __init__(self, user_id, stylesheet, main_window):
         super().__init__()  
@@ -399,6 +400,7 @@ class IncomeListWindow(QWidget):
         self.setStyleSheet('background-color: #F5FFFA')
         self.table_style = stylesheet
         self.init_list_ui()
+
 
     def init_list_ui(self):
         outer_frame_layout = QVBoxLayout()
@@ -414,11 +416,10 @@ class IncomeListWindow(QWidget):
         self.table_widget.setHorizontalHeaderLabels(["Date", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
-        # GETTING DATA FROM THE DATABASE
+        # Get records from the database
         self.incomes_list = get_user_income(self.user_id)
-        print(self.incomes_list)
 
-        # Check for null
+        # If there are no records
         if not self.incomes_list:
             self.table_widget.setRowCount(1)
             self.table_widget.setSpan(0, 0, 1, 4)
@@ -447,7 +448,7 @@ class IncomeListWindow(QWidget):
             date = income_record[0]
             amount = income_record[1]
 
-            # Insert extracted data into a row 
+            # Insert extracted data into the table row 
             self.table_widget.insertRow(i)
             self.table_widget.setItem(i, 0, QTableWidgetItem(date))
             self.table_widget.setItem(i, 1, QTableWidgetItem(str(amount)))
@@ -460,18 +461,15 @@ class IncomeListWindow(QWidget):
             edit_this_income_record.setFont(QFont("Futura", 16))
             edit_this_income_record.clicked.connect(lambda checked, row=i: self.edit_this_income_record(row, checked))
 
-
-            # Button to remove record from the group
+            # Button to remove the record from the database
             remove_this_income_record = QPushButton("Delete", self)
             remove_this_income_record.setCursor(Qt.CursorShape.PointingHandCursor)
             remove_this_income_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
             remove_this_income_record.setFont(QFont("Futura", 16))
             remove_this_income_record.clicked.connect(lambda checked, row=i: self.remove_this_income_record(row))
 
-
             self.table_widget.setCellWidget(i, 2, edit_this_income_record)
             self.table_widget.setCellWidget(i, 3, remove_this_income_record)
-
 
             # Set all labels as non-editable initially
             for column in range(2):
@@ -483,26 +481,25 @@ class IncomeListWindow(QWidget):
 
     # Remove current record from the database
     def remove_this_income_record(self, row):
-        # Collect data to find it in DB
+
+        # Collect data to find the record in the database
         row_data = [self.table_widget.item(row, column).text() for column in range(2)]
         sql_return_value = remove_income_record(self.user_id, row_data[0], row_data[1])
        
-        # Flush message about what was removed
+        # In case of successful removal
         if sql_return_value:
             success_msg = QMessageBox.information(self, "Information", "Record removed")
 
-            # Repaint donut chart
+            # Repaint donut chart in the main window
             self.main_window.current_month_donut_chart.refresh_donut_chart()
-
-            # Update Group view
             self.table_widget.update()
 
 
-    # Edit record and update it in DB
+    # Edit record and update it in the database
     def edit_this_income_record(self, row_index, checked):
         if checked:  # When the "Edit" button is checked
 
-            # Collect data to find the row in DB
+            # Collect data to find the recird in the ddatabase 
             self.row_data_before_editing = []
             for column in range(2):
                 label_item = self.table_widget.item(row_index, column)
@@ -531,18 +528,19 @@ class IncomeListWindow(QWidget):
             edit_button = self.table_widget.cellWidget(row_index, 2)
             edit_button.setText("Edit")
 
-            # Update record in DB 
+            # Update the record in the database
             result, message = edit_income_record(self.user_id, self.row_data_before_editing, edited_row_data)
 
             if not result:
                 cannot_add_msg = QMessageBox.information(self, "Information", message)
             
             else:
-            # If the validation passed 
+            # In case of successful edit
                 success_msg = QMessageBox.information(self, "Information", message)
 
-                # Repaint donut chart
+                # Repaint donut chart in the main window
                 self.main_window.current_month_donut_chart.refresh_donut_chart()
+                self.table_widget.update()
 
 
     def close_income_table(self):

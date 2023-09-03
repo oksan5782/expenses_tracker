@@ -12,7 +12,7 @@ def main():
     # Start with Log In window object
     main_window = LogInWindow()
 
-    #  Show the application's GUI
+    # Show the application's GUI
     main_window.show()
 
     # Run the application's event loop

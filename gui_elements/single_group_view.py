@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QTableWidget,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor
 
-# Import data insertion function
+# Import functions interacting with the database
 import sys
 sys.path.append('../helpers')
 from helpers import get_group_expenses, remove_record_from_the_group, edit_record
@@ -22,14 +22,12 @@ class DisplayGroupList(QMainWindow):
         self.row_data_before_editing = []
 
 
-
     def create_table(self):
         outer_frame = QWidget()
         outer_frame_layout = QVBoxLayout()
 
         self.setWindowTitle(f"{self.group_name} Expenses")
         self.setGeometry(450, 250, 750, 500)
-
 
         self.table_widget = QTableWidget(self)
         stylesheet = """
@@ -59,7 +57,7 @@ class DisplayGroupList(QMainWindow):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Exclude"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
-        # GETTING DATA FROM THE DATABASE
+        # Get group data from the database for current user
         group_expenses_list = get_group_expenses(self.user_id, self.group_name)
 
          # Check for null
@@ -75,7 +73,7 @@ class DisplayGroupList(QMainWindow):
                 transaction_type = expense_record[3]
                 amount = expense_record[4]
 
-                # Insert extracted data into a row 
+                # Insert extracted data into the table row 
                 self.table_widget.insertRow(i)
                 self.table_widget.setItem(i, 0, QTableWidgetItem(name))
                 self.table_widget.setItem(i, 1, QTableWidgetItem(category))
@@ -91,7 +89,6 @@ class DisplayGroupList(QMainWindow):
                 edit_this_group_record.setFont(QFont("Futura", 16))
                 edit_this_group_record.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
 
-
                 # Button to remove record from the group
                 remove_this_group_record = QPushButton("Delete", self)
                 remove_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -99,10 +96,8 @@ class DisplayGroupList(QMainWindow):
                 remove_this_group_record.setFont(QFont("Futura", 16))
                 remove_this_group_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
 
-
                 self.table_widget.setCellWidget(i, 5, edit_this_group_record)
                 self.table_widget.setCellWidget(i, 6, remove_this_group_record)
-
 
                 # Set all labels as non-editable initially
                 for column in range(5):
@@ -121,38 +116,42 @@ class DisplayGroupList(QMainWindow):
         closing_button.setFont(QFont("Futura", 16))
         closing_button.clicked.connect(self.close_group_view)
         outer_frame_layout.addWidget(closing_button, alignment=Qt.AlignmentFlag.AlignCenter)
+       
         # Set layout and display it
         outer_frame.setLayout(outer_frame_layout)
         self.setCentralWidget(outer_frame)
 
         self.show()
     
-    # Usage of the button to close the window
+
+    # Close window button
     def close_group_view(self):
         self.hide()
     
+
     # Remove current record from the group only
     def remove_this_expense_record(self, row):
-        # Collect data to find it in DB
+
+        # Collect row data to find the record in the database
         row_data = [self.table_widget.item(row, column).text() for column in range(5)]
         sql_return_value = remove_record_from_the_group(self.user_id, row_data[0], row_data[1], row_data[2], row_data[3], row_data[4])
        
-        # Flush message about what was removed
         if sql_return_value:
+            # Flush message with the status
             success_msg = QMessageBox.information(self, "Information", "Records removed from the group")
 
             # Repaint group widget
             self.main_window.update_groups_area()
 
-            # Update Group view
+            # Update group view
             self.table_widget.update()
 
 
-    # Edit record and update it in DB
+    # Edit record and update it in the database
     def edit_this_expense_record(self, row_index, checked):
         if checked:  # When the "Edit" button is checked
 
-            # Collect data to find the row in DB
+            # Collect row data to find the record in the database
             self.row_data_before_editing = []
             for column in range(5):
                 label_item = self.table_widget.item(row_index, column)
@@ -181,7 +180,7 @@ class DisplayGroupList(QMainWindow):
             edit_button = self.table_widget.cellWidget(row_index, 5)
             edit_button.setText("Edit")
 
-            # Update record in DB 
+            # Update record in the database 
             result, message = edit_record(self.user_id, self.row_data_before_editing, edited_row_data)
 
             if not result:
@@ -191,13 +190,12 @@ class DisplayGroupList(QMainWindow):
             # If the validation passed 
                 success_msg = QMessageBox.information(self, "Information", message)
 
-                # Repaint graph, categories view and balance windows
+                # Repaint graph, categories view and balance widgets in the main window
                 self.main_window.stacked_bar_chart.refresh_bar_chart()
                 self.main_window.update_categories_area()
                 self.main_window.update_groups_area()
                 self.main_window.current_month_donut_chart.refresh_donut_chart()
 
-            
             # Update table after removal of the item
             self.table_widget.update()
 

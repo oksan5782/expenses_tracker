@@ -1,22 +1,23 @@
-
-""" FUNCTIONS FOR MAIN WINDOW WIDGET """
-
 from datetime import datetime, timedelta
 from collections import defaultdict
 import pandas as pd
 import bcrypt 
+import sqlite3
 
 
 """CONSTANTS"""
-#  Categories list for all categories view
+
+#  Categories list 
 ALL_POSSIBLE_CATEGORIES_LIST = ["Rent", "Transportation", "Groceries", "Utilities", "Eating Out", "Health", "Entertainment", "Subscriptions", "Sport", "Other"]
+
 # Expense types
 ALL_EXPENSE_TYPES = ["Credit", "Cash", "Check", "Foreign Currency"]
 
 
-# DATETIME ONLY FUNCTIONS 
+"""Date/Datetime Functions"""
+
 def get_last_day_of_current_month():
-    # Get the current date
+
     current_date = datetime.now()
 
     # Get the first day of the next month
@@ -27,7 +28,8 @@ def get_last_day_of_current_month():
 
     return last_day_of_current_month
 
-# Get list of strings for the last 6 months in the format YYYY-MM
+
+# Get the list of strings for the last 6 months in the format YYYY-MM
 def get_last_6_months():
 
     today = datetime.today()
@@ -39,7 +41,6 @@ def get_last_6_months():
     return [date.strftime("%Y-%m") for date in last_6_months]
 
 
-
 def get_3_letters_for_last_6_month():
         now = datetime.now()
         result = [now.strftime("%B")[:3]]
@@ -48,6 +49,7 @@ def get_3_letters_for_last_6_month():
             result.append(now.strftime("%B")[:3])
         result.reverse()
         return result
+
 
 # Convert SQL string of date into datetimr object
 def convert_to_date_time(date_string):
@@ -60,7 +62,7 @@ def convert_to_date_time(date_string):
         return None
 
 
-# Check if date value is valid
+# Check if the date value is valid
 def is_valid_datetime_format(datetime_str):
     try:
         # Try to parse the input date string
@@ -70,7 +72,7 @@ def is_valid_datetime_format(datetime_str):
         return False
 
 
- # Check if expense/income amount is valid
+# Check if expense/income amount is valid
 def is_valid_numeral(number):
     try:
         numeric_result = float(number)
@@ -82,23 +84,19 @@ def is_valid_numeral(number):
         return False
 
 
-# Setup sqlite3
-import sqlite3
-
-
-# Get Recent Expenses for Stacked bar chart
+# Get a dictionary of the expenses for the last 6 months
 def get_recent_expenses(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()
-           # SQL query to get the list of 6 categories sorted by total amount of expenses
-        categories_query = """
-            SELECT category, SUM(amount) AS total_amount
-            FROM expense
-            GROUP BY category
-            ORDER BY total_amount DESC
-            LIMIT 6;
-        """
+
+        # SQL query to get the list of 6 categories sorted by total amount of expenses
+        categories_query = """ SELECT category, SUM(amount) AS total_amount
+                                FROM expense
+                                GROUP BY category
+                                ORDER BY total_amount DESC
+                                LIMIT 6;
+                            """
 
         # Execute the first query to get the list of 6 categories
         cursor.execute(categories_query)
@@ -106,7 +104,6 @@ def get_recent_expenses(user_id):
 
         # Get the date range for the last 6 months and change its order
         last_6_months = get_last_6_months()
-        # last_6_months.reverse()
 
         # SQL query to get the sum of "amount" grouped by each month and each category
         sum_query = """
@@ -124,10 +121,12 @@ def get_recent_expenses(user_id):
         cursor.execute(sum_query)
         sums_data = cursor.fetchall()
         cursor.close()
+
+        # If there are no records
         if not sums_data:
             return None
 
-        # Organize the results in a dictionary format
+        # Organize results in a dictionary
         result_dict = {}
         for category in top_6_categories:
             result_dict[category] = [0] * 6
@@ -145,47 +144,49 @@ def get_recent_expenses(user_id):
 
 
 
-# Functions for Balance area
+# Get a sum of amounts of income grouped by months
 def get_monthly_income(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
-    current_month = datetime.now().strftime("%Y-%m")
+    current_month = datetime.now().strftime("%Y-%m")  
 
-    # No need to validate date sinse its taken from Calendar widget
     try:
         cursor = sqliteConnection.cursor()
         values = {
                    'current_month' : current_month,
                    'user_id' : user_id}
-        query = """SELECT IFNULL(SUM(amount), 0) FROM income WHERE user_id = :user_id AND strftime('%Y-%m', date) = :current_month"""
+        query = """ SELECT IFNULL(SUM(amount), 0) 
+                    FROM income 
+                    WHERE user_id = :user_id 
+                        AND strftime('%Y-%m', date) = :current_month"""
         cursor.execute(query, values)
         result = cursor.fetchone()[0]
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
-        print("Error while connecting to sqlite", error)
+        print("Error while connecting to sqlite", error)      
     finally:
         if sqliteConnection:
             sqliteConnection.close()
 
 
+# Get a sum of expenses for the current month
 def get_this_month_expenses(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
-    current_month = datetime.now().strftime("%Y-%m")
-
-    # No need to validate date sinse its taken from Calendar widget
+    current_month = datetime.now().strftime("%Y-%m") 
     try:
         cursor = sqliteConnection.cursor()
         values = {
                    'current_month' : current_month,
                    'user_id' : user_id}
-        query = """SELECT IFNULL(SUM(amount), 0) FROM expense WHERE user_id = :user_id AND strftime('%Y-%m', date) = :current_month"""
+        query = """ SELECT IFNULL(SUM(amount), 0) 
+                    FROM expense 
+                    WHERE user_id = :user_id 
+                        AND strftime('%Y-%m', date) = :current_month"""
         cursor.execute(query, values)
         result = cursor.fetchone()[0]
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -193,19 +194,19 @@ def get_this_month_expenses(user_id):
         if sqliteConnection:
             sqliteConnection.close()
 
+
+# Get a list of all user expense records in descending order
 def get_user_expenses(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()
-        query = """SELECT name, category, date, transaction_type, amount
-                FROM expense 
-                WHERE user_id = :user_id 
-                ORDER BY date DESC"""
+        query = """ SELECT name, category, date, transaction_type, amount
+                    FROM expense 
+                    WHERE user_id = :user_id 
+                    ORDER BY date DESC"""
         cursor.execute(query, (user_id,))
         result = cursor.fetchall()
         cursor.close()
-
-        # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -213,19 +214,19 @@ def get_user_expenses(user_id):
         if sqliteConnection:
             sqliteConnection.close()
 
+
+# Get a list of all user income records in descending order
 def get_user_income(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()
-        query = """SELECT date, amount 
-                FROM income 
-                WHERE user_id = :user_id 
-                ORDER BY date DESC"""
+        query = """ SELECT date, amount 
+                    FROM income 
+                    WHERE user_id = :user_id 
+                    ORDER BY date DESC"""
         cursor.execute(query, (user_id,))
         result = cursor.fetchall()
         cursor.close()
-
-        # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -234,24 +235,21 @@ def get_user_income(user_id):
             sqliteConnection.close()
 
 
-
-"""Functions for calendar block """
-# Extracting the sum of expenses for a given date
-
+# Extract the sum of expenses for a given date
 def get_sum_expenses_by_date(user_id, date):
-    sqliteConnection = sqlite3.connect('expense_tracker.db')
-
-    # No need to validate date sinse its taken from Calendar widget
+    sqliteConnection = sqlite3.connect('expense_tracker.db') # No need to validate date sinse its taken from Calendar widget
     try:
         cursor = sqliteConnection.cursor()
         values = {
                    'date' : date,
                    'user_id' : user_id}
-        query = """SELECT SUM(amount) FROM expense WHERE user_id = :user_id AND date = :date"""
+        query = """ SELECT SUM(amount) 
+                    FROM expense 
+                    WHERE user_id = :user_id 
+                        AND date = :date"""
         cursor.execute(query, values)
         result = cursor.fetchone()[0]
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         return result
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -260,22 +258,21 @@ def get_sum_expenses_by_date(user_id, date):
             sqliteConnection.close()
 
 
-
-# Extracting all expense records by date
+# Extract all expense records for a given date
 def get_list_expenses_by_date(user_id, date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-
-    # No need to validate date sinse its taken from Calendar widget
     try:
         cursor = sqliteConnection.cursor()
         values = {
                    'date' : date,
                    'user_id' : user_id}
-        query = """SELECT name, category, amount FROM expense WHERE date = :date AND user_id = :user_id"""
+        query = """ SELECT name, category, amount 
+                    FROM expense
+                    WHERE date = :date 
+                        AND user_id = :user_id"""
         cursor.execute(query, values)
         results = cursor.fetchall()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         return results
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -284,26 +281,27 @@ def get_list_expenses_by_date(user_id, date):
             sqliteConnection.close()
 
 
-
- # Select top oldest date record in the table by user_id (limit 1)
+ # Select the 1st date of the month of the first record by this user
 def get_last_start_date_of_oldest_record(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
     try:
         cursor = sqliteConnection.cursor()
         values = {'user_id' : user_id}
-        query = """SELECT MIN(date) FROM expense WHERE user_id = :user_id LIMIT 1"""
+        query = """ SELECT MIN(date) 
+                    FROM expense 
+                    WHERE user_id = :user_id
+                    LIMIT 1"""
         cursor.execute(query, values)
         results = cursor.fetchone()[0]
         cursor.close()
 
-        # Check if result is not empty results
+        # If there are no records return the first date of the current month
         if not results:
             today = datetime.today()
             first_date_of_month = today.replace(day=1)
             return (False, first_date_of_month)
 
-        # Finally will be executed after 'finally' statements, so return can be made
         return (True, convert_to_date_time(results))
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -312,30 +310,31 @@ def get_last_start_date_of_oldest_record(user_id):
             sqliteConnection.close()
 
 
-""" FUNCTIONS for groups area """
+# Crate a group by adding a group_id to the list of selected records
 def create_group(user_id, group_name, list_of_group_records):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-
     try:
         cursor = sqliteConnection.cursor()
 
-        # Check if the group with this name already exists
+        # Check if any group with this name already exists
         check_query = "SELECT group_id FROM groups WHERE name = ?;"
         cursor.execute(check_query, (group_name,))
         existing_group = cursor.fetchone()
 
-        # Create group name if its new one
+        # Add group name to the groups table and get its group_id
         if not existing_group:
             insert_query = "INSERT INTO groups (name) VALUES (?);"
             cursor.execute(insert_query, (group_name,))
+
             # Get the newly created group_id
             existing_group = cursor.lastrowid
         else: 
             existing_group = existing_group[0]
 
-
-        data_list = []
         # Create data list to update group_id
+        data_list = []
+
+        # Prepare record values for the update SQL query
         if list_of_group_records:
             for row in list_of_group_records:
                 dictionary = {
@@ -349,27 +348,24 @@ def create_group(user_id, group_name, list_of_group_records):
                 }
                 data_list.append(dictionary)
 
-
         # Set group value query 
         update_query = """
             UPDATE expense
             SET group_id = :group_id
             WHERE user_id = :user_id 
-            AND name = :name
-            AND category = :category
-            AND date = :date
-            AND transaction_type = :transaction_type
-            AND amount = :amount;"""
+                AND name = :name
+                AND category = :category
+                AND date = :date
+                AND transaction_type = :transaction_type
+                AND amount = :amount;"""
         
-        # Execute the update query for each dictionary in the list
+        # Execute an update query for each dictionary in the list
         for data_dict in data_list:
             cursor.execute(update_query, data_dict)
 
-        # Commit the changes and close the connection
+        # Commit changes and close the connection
         sqliteConnection.commit()
         cursor.close()
-
-        # Finally will be executed after 'finally' statements, so return can be made
         return 0
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -378,28 +374,23 @@ def create_group(user_id, group_name, list_of_group_records):
             sqliteConnection.close()
 
 
-
-
+# Get a tuple of the group name and total amount by user id
 def get_groups_list(user_id):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
-
     try:
         cursor = sqliteConnection.cursor()
         values = {'user_id' : user_id}
 
-        # SQL query to get group names and sum of amounts for the given user_id
-        query = """
-            SELECT g.name, COALESCE(SUM(e.amount), 0) AS total_amount
-            FROM groups g
-            LEFT JOIN expense e ON g.group_id = e.group_id
-            WHERE e.user_id = :user_id
-            GROUP BY g.group_id
-            LIMIT 10
-            """
+        # Get group names and sum of amounts for the given user_id
+        query = """SELECT g.name, COALESCE(SUM(e.amount), 0) AS total_amount
+                    FROM groups g
+                    LEFT JOIN expense e ON g.group_id = e.group_id
+                    WHERE e.user_id = :user_id
+                    GROUP BY g.group_id
+                    LIMIT 10 """
         cursor.execute(query, values)
         results = cursor.fetchall()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         return results
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -407,8 +398,9 @@ def get_groups_list(user_id):
         if sqliteConnection:
             sqliteConnection.close()
 
-
+# Get a list of tuples for a category and expenses belonging to it for the current month
 def get_top_10_category_expenses(user_id): 
+
     # Get the current month and year
     current_month = datetime.now().strftime("%Y-%m")
     result = []
@@ -426,8 +418,8 @@ def get_top_10_category_expenses(user_id):
                 SELECT IFNULL(SUM(amount), 0)
                 FROM expense
                 WHERE user_id = :user_id 
-                AND category = :category
-                AND strftime('%Y-%m', date) = :current_month
+                    AND category = :category
+                    AND strftime('%Y-%m', date) = :current_month
             """
             cursor.execute(query, values)
             expense_sum = cursor.fetchone()[0]
@@ -443,6 +435,7 @@ def get_top_10_category_expenses(user_id):
             sqliteConnection.close()             
 
 
+# Get a dictionary of the year and its total expenses sum
 def get_yearly_expenses_summary(user_id, start_date, end_date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -456,9 +449,7 @@ def get_yearly_expenses_summary(user_id, start_date, end_date):
             GROUP BY year
         """
         
-        # cursor.execute(query, (user_id, start_date, end_date))  
         cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
-          
         expenses_sum = cursor.fetchall()
         expenses_by_year = {str(year): 0 for year in range(start_date.year, end_date.year + 1)}
         for row in expenses_sum:
@@ -473,7 +464,7 @@ def get_yearly_expenses_summary(user_id, start_date, end_date):
             sqliteConnection.close() 
 
 
-
+# Get a dictionary of the year and its total income sum
 def get_yearly_income_summary(user_id, start_date, end_date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
@@ -488,7 +479,6 @@ def get_yearly_income_summary(user_id, start_date, end_date):
             GROUP BY year
         """
         
-        # cursor.execute(query, (user_id, start_date, end_date))  
         cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
           
         income_sum = cursor.fetchall()
@@ -504,7 +494,8 @@ def get_yearly_income_summary(user_id, start_date, end_date):
         if sqliteConnection:
             sqliteConnection.close()
 
-            
+
+# Get a dictionary of the months and their total expenses sums      
 def get_monthly_expenses_summary(user_id, start_date, end_date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -518,7 +509,6 @@ def get_monthly_expenses_summary(user_id, start_date, end_date):
             GROUP BY month
         """
         
-        # cursor.execute(query, (user_id, start_date, end_date))  
         cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
           
         expenses_sum = cursor.fetchall()
@@ -548,6 +538,7 @@ def get_monthly_expenses_summary(user_id, start_date, end_date):
             sqliteConnection.close() 
 
 
+# Get a dictionary of the months and their total income sums      
 def get_monthly_income_summary(user_id, start_date, end_date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -561,11 +552,10 @@ def get_monthly_income_summary(user_id, start_date, end_date):
             GROUP BY month
         """
         
-        # cursor.execute(query, (user_id, start_date, end_date))  
         cursor.execute(query, (user_id, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
         income_sum = cursor.fetchall()
 
-        # Create a defaultdict to store expenses by month
+        # Create a defaultdict to store income sums by month
         income_by_month = defaultdict(float)
 
         current_date = start_date
@@ -575,7 +565,7 @@ def get_monthly_income_summary(user_id, start_date, end_date):
             current_date += timedelta(days=30)  # Assuming roughly 30 days per month
     
 
-        # Iterate through expenses_sum and update the expenses_by_month dictionary
+        # Iterate through expenses_sum and update the income_by_month dictionary
         for month, total_income in income_sum:
             date = datetime.strptime(month, "%Y-%m")
             if start_date <= date <= end_date:
@@ -590,11 +580,11 @@ def get_monthly_income_summary(user_id, start_date, end_date):
         if sqliteConnection:
             sqliteConnection.close()
 
-# Add Expense after Add Expense button press
+# Add expense record into the database
 def add_expense_into_db(user_id, type, name, date, category, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     
-    # Check if name is not missing
+    # Check if the name field is not missing
     if name == "":
         message = "Missing name"
         return (False, message)
@@ -604,7 +594,7 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
         message = "Invalid Date Format. Please use YYYY-MM-DD"
         return (False, message)
     
-    # Check if amount is aa positive numeric value
+    # Check if amount is a positive numeric value
     if not is_valid_numeral(amount):
         message = "Invalid amount"
         return (False, message)
@@ -623,7 +613,6 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         message = "Expense added"
         return (True, message)
     except sqlite3.Error as error:
@@ -633,7 +622,7 @@ def add_expense_into_db(user_id, type, name, date, category, amount):
             sqliteConnection.close()
 
 
-# Check if is value already inserted into the table
+# Check whether the record is added to the database
 def check_record_presence(user_id, name, category, amount, date):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
@@ -646,17 +635,19 @@ def check_record_presence(user_id, name, category, amount, date):
                   'date': date}
         query = """SELECT expense_id
                     FROM expense 
-        WHERE user_id = :user_id 
-            AND name = :name
-            AND category = :category
-            AND amount = :amount
-            AND date = :date"""
+                    WHERE user_id = :user_id 
+                        AND name = :name
+                        AND category = :category
+                        AND amount = :amount
+                        AND date = :date"""
         cursor.execute(query, values)
         results = cursor.fetchone()
         cursor.close()
+
         # Return True if the record is present
         if results:
             return True
+        
         # Return False if record is not added
         return False
 
@@ -667,22 +658,20 @@ def check_record_presence(user_id, name, category, amount, date):
             sqliteConnection.close()
 
 
-
-
-# Upload expenses from a file
+# Upload expenses from a Chase .csv file
 def upload_expense_csv_chase(user_id, file):
     try:
         df = pd.read_csv(file)
 
-        # Remove thank you - credit cover line 
+        # Remove "thank you" - credit cover line 
         df_cover_credit_row_index = df[(df['Description'].str.contains('Payment Thank You')) & (df['Type'] == 'Payment')].index
         df.drop(df_cover_credit_row_index, inplace=True)
 
-        # Update date values to strings 
+        # Format date values to strings 
         df['Transaction Date'] = pd.to_datetime(df['Transaction Date'], format='%m/%d/%Y')
         df['Transaction Date'] = df['Transaction Date'].dt.strftime('%Y-%m-%d')
 
-        # Update amount values to float type
+        # Format amount values to float type
         df['Amount'] = df['Amount'].astype(float)
 
         # Get positive values to upload them as income 
@@ -706,19 +695,19 @@ def upload_expense_csv_chase(user_id, file):
         df['Category'] = df['Category'].str.replace('Bills & Utilities', 'Utilities')
         df['Category'] = df['Category'].str.replace('Food & Drink', 'Eating Out')
         df['Category'] = df['Category'].str.replace('Health & Wellness', 'Health')
+
         # Replace values not in the list with 'Other'
         df.loc[~df['Category'].isin(ALL_POSSIBLE_CATEGORIES_LIST), 'Category'] = 'Other'
 
-
-        # Find last uploaded transaction:
+        # Find the last uploaded transaction:
         check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'], df.loc[0, 'Transaction Date'])
 
-        # If latest record is already added, all of the table content is already uploaded
+        # If the latest record is already added, all of the table content has been already uploaded
         if check_first_row:
             message = "The file content was already added to the database"
             return (False, message)
     
-        # Check if last record is uploaded
+        # Check if the last record has been uploaded
         last_row_index = df.tail(1).index[0]
         check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'], df.loc[last_row_index, 'Transaction Date'])
 
@@ -726,7 +715,7 @@ def upload_expense_csv_chase(user_id, file):
         if check_last_row:
             top_row = 0
             bottom_row = last_row_index
-            # Button floor will be last index 
+            # Buttom row value will be last index 
             while top_row <= bottom_row:
                 mid = (top_row + bottom_row) // 2
 
@@ -747,12 +736,12 @@ def upload_expense_csv_chase(user_id, file):
         return (False, message)
 
 
-# Upload Discover csv
+# Upload expenses from a Discover .csv file
 def upload_expense_csv_discover(user_id, file):
     try:
         df = pd.read_csv(file)
 
-        # Remove thank you - credit cover line 
+        # Remove "thank you" - credit cover line 
         df_cover_credit_row_index = df[(df['Description'].str.contains('THANK YOU')) & (df['Category'] == 'Payments and Credits')].index
         df.drop(df_cover_credit_row_index, inplace=True)
 
@@ -763,10 +752,10 @@ def upload_expense_csv_discover(user_id, file):
         # Update amount values to float type
         df['Amount'] = df['Amount'].astype(float)
 
-        # Get NEGATIVE values to upload them as income 
+        # Get negative values to upload them as income 
         df_returns_or_income = df[df['Amount'] < 0]
 
-        # Change sign these all negative amounts 
+        # Change the sign of return or income records  
         if not df_returns_or_income.empty:
             df_returns_or_income['Amount'] = df_returns_or_income['Amount'] * -1
 
@@ -787,22 +776,20 @@ def upload_expense_csv_discover(user_id, file):
         df['Category'] = df['Category'].str.replace('Gasoline', 'Transportation')
         df['Category'] = df['Category'].str.replace('Travel/ Entertainment', 'Transportation')
         df['Category'] = df['Category'].str.replace('Medical Services', 'Health')
-
-
         df['Category'] = df['Category'].str.replace('Restaurants', 'Eating Out')
 
         # Replace values not in the list with 'Other'
         df.loc[~df['Category'].isin(ALL_POSSIBLE_CATEGORIES_LIST), 'Category'] = 'Other'
 
-        # Find last uploaded transaction:
+        # Find the last uploaded transaction:
         check_first_row = check_record_presence(user_id, df.loc[0, 'Description'], df.loc[0, 'Category'], df.loc[0, 'Amount'], df.loc[0, 'Trans. Date'])
 
-        # If latest record is already added, all of the table content is already uploaded
+        # If latest record is already added, all of the table content has been already uploaded
         if check_first_row:
             message = "The file content was already added to the database"
             return (False, message)
 
-        # Check if last record is uploaded
+        # Check if the last record has been uploaded
         last_row_index = df.tail(1).index[0]
         check_last_row = check_record_presence(user_id, df.loc[last_row_index, 'Description'], df.loc[last_row_index, 'Category'], df.loc[last_row_index, 'Amount'], df.loc[last_row_index, 'Trans. Date'])
 
@@ -831,8 +818,7 @@ def upload_expense_csv_discover(user_id, file):
         return (False, message)
 
 
-
-# Add income after Add Income button press
+# Add income record
 def add_income_into_db(user_id, date, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
@@ -840,7 +826,8 @@ def add_income_into_db(user_id, date, amount):
     if not is_valid_datetime_format(date):
         message = "Invalid Date Format. Please use YYYY-MM-DD"
         return (False, message)
-    # CCheck if amount is a positive numeric value
+    
+    # Check if the amount is a positive numeric value
     if not is_valid_numeral(amount):
         message = "Invalid amount"
         return (False, message)
@@ -855,7 +842,6 @@ def add_income_into_db(user_id, date, amount):
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         message = "Income value added"
         return (True, message)
     except sqlite3.Error as error:
@@ -882,7 +868,7 @@ def get_expenses_by_category(user_id, category):
         results = cursor.fetchall()
         cursor.close()
         return results
-
+    
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
     finally:
@@ -915,7 +901,7 @@ def get_expenses_by_date_range(user_id, start_date, end_date):
             sqliteConnection.close()
 
 
-
+# Set group_id of the selected record to None
 def remove_record_from_the_group(user_id, expense_name, category, date, transaction_type, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -932,11 +918,11 @@ def remove_record_from_the_group(user_id, expense_name, category, date, transact
             UPDATE expense
             SET group_id = :group_id
             WHERE user_id = :user_id 
-            AND name = :expense_name
-            AND category = :category
-            AND date = :date
-            AND transaction_type = :transaction_type
-            AND amount = :amount;"""
+                AND name = :expense_name
+                AND category = :category
+                AND date = :date
+                AND transaction_type = :transaction_type
+                AND amount = :amount;"""
 
         cursor.execute(update_query, values)
         sqliteConnection.commit()
@@ -951,9 +937,10 @@ def remove_record_from_the_group(user_id, expense_name, category, date, transact
 
 
 
-# Update record data to new values after searching fir it by previous values
+# Update expense record with the new values 
 def edit_record(user_id, record_before_editing_list, record_after_editing_list):
-    # Parse values fron lists
+
+    # Map record values to the dictionary
     values = {
         'user_id' : user_id,
         'prev_name' : record_before_editing_list[0],
@@ -973,19 +960,23 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
     if not is_valid_datetime_format(values['new_date']):
         message = "Invalid Date Format. Please use YYYY-MM-DD"
         return (False, message)
-    # Check if name is not missing
+    
+    # Check if the name field is not missing
     if values['new_name'] == "":
         message = "Missing name"
         return (False, message)
-    # Check if the type is valid
+    
+    # Check if the transaction type of the updated record is valid
     if values['new_type'] not in ALL_EXPENSE_TYPES:
         message = "Invalid transaction type"
         return (False, message)
-    # check if amount is a positive numeric value
+    
+    # check if the amount is a positive numeric value
     if not is_valid_numeral(values['new_amount']):
         message = "Invalid amount"
         return (False, message)
-    # check if category is among the ones available
+    
+    # Check if category is among the ones available
     if values['new_category'] not in ALL_POSSIBLE_CATEGORIES_LIST:
         message = "Invalid category. Try capitalizing the name or use Other"
         return (False, message)
@@ -1009,7 +1000,6 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         message = "Expense updated"
         return (True, message)
     except sqlite3.Error as error:
@@ -1019,8 +1009,9 @@ def edit_record(user_id, record_before_editing_list, record_after_editing_list):
             sqliteConnection.close()
     
 
+# Update income record with the new values 
 def edit_income_record(user_id, record_before_editing_list, record_after_editing_list):
-    # Parse values fron lists
+    # Map record values to the dictionary
     values = {
         'user_id' : user_id,
         'prev_date' : record_before_editing_list[0],
@@ -1035,7 +1026,7 @@ def edit_income_record(user_id, record_before_editing_list, record_after_editing
         message = "Invalid Date Format. Please use YYYY-MM-DD"
         return (False, message)
 
-    # check if amount is a positive numeric value
+    # Check if the amount is a positive numeric value
     if not is_valid_numeral(values['new_amount']):
         message = "Invalid amount"
         return (False, message)
@@ -1053,7 +1044,6 @@ def edit_income_record(user_id, record_before_editing_list, record_after_editing
         cursor.execute(query, values)
         sqliteConnection.commit()
         cursor.close()
-        # Finally will be executed after 'finally' statements, so return can be made
         message = "Income updated"
         return (True, message)
     except sqlite3.Error as error:
@@ -1063,7 +1053,7 @@ def edit_income_record(user_id, record_before_editing_list, record_after_editing
             sqliteConnection.close()
 
 
-
+# Delete a record from the expense table of the database
 def remove_record(user_id, expense_name, category, date, transaction_type, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
@@ -1087,15 +1077,11 @@ def remove_record(user_id, expense_name, category, date, transaction_type, amoun
             AND transaction_type = :transaction_type
             AND amount = :amount;
         """
-        
-        # Execute the update query for each dictionary in the list
         cursor.execute(delete_query, values)
 
-        # Commit the changes and close the connection
+        # Commit changes and close the connection
         sqliteConnection.commit()
         cursor.close()
-
-        # Finally will be executed after 'finally' statements, so return can be made
         return True
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -1104,6 +1090,7 @@ def remove_record(user_id, expense_name, category, date, transaction_type, amoun
             sqliteConnection.close()
 
 
+# Delete a record from the income table of the database
 def remove_income_record(user_id, date, amount):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
 
@@ -1121,15 +1108,11 @@ def remove_income_record(user_id, date, amount):
             AND date = :date
             AND amount = :amount;
         """
-        
-        # Execute the update query for each dictionary in the list
         cursor.execute(delete_query, values)
 
-        # Commit the changes and close the connection
+        # Commit changes and close the connection
         sqliteConnection.commit()
         cursor.close()
-
-        # Finally will be executed after 'finally' statements, so return can be made
         return True
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -1138,9 +1121,7 @@ def remove_income_record(user_id, date, amount):
             sqliteConnection.close()
 
 
-
-
-# Select date by user_id and group
+# Select records from the expense table by group and user ids
 def get_group_expenses(user_id, group_name):
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
@@ -1171,29 +1152,27 @@ def get_group_expenses(user_id, group_name):
             sqliteConnection.close()
 
 
+""" AUTHENTICATION """
 
-
-
-
-# AUTHENTICATION
-
-# Log In
+# Log in user
 def log_in_check(username, password):
-    # Validate both input fields if they are not empty
+
+    # Validate username input field 
     if username == "":
         message = "Missing username"
         return (False, message, 0)
     
+    # Validate password input field 
     if password == "":
         message = "Missing password"
         return (False, message, 0)
     
-    # Search for user name in a table
+    # Search for user name in the user table
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()
 
-        # Get group_id
+        # Get user's id and password hash based on the username
         check_query = "SELECT id, hash FROM user WHERE username = ?;"
         cursor.execute(check_query, (username,))
         result_tuple = cursor.fetchone()
@@ -1205,15 +1184,15 @@ def log_in_check(username, password):
         if sqliteConnection:
             sqliteConnection.close()
 
-    # If it does not exist - return 
+    # If it does not exist - return False
     if not result_tuple:
         message = "No user found"
         return (False, message, 0)
     
-    # Format hash
+    # Format the content of the password input field
     password_bytes = password.encode('utf-8')
 
-    # Check if password hash matches username_id record
+    # Check if the password hash matches username_id record
     if bcrypt.checkpw(password_bytes, result_tuple[1]):
         return (True, "", result_tuple[0])
 
@@ -1222,7 +1201,6 @@ def log_in_check(username, password):
     return (False, message, 0)
 
         
-
 # Register new user
 def register_user(username, password, password_confirmation):    
     # Validate input fields
@@ -1247,7 +1225,7 @@ def register_user(username, password, password_confirmation):
     try:
         cursor = sqliteConnection.cursor()
 
-        # Get group_id
+        # Get user_id by username
         check_query = "SELECT id FROM user WHERE username = ?;"
         cursor.execute(check_query, (username,))
         result = cursor.fetchone()
@@ -1268,7 +1246,7 @@ def register_user(username, password, password_confirmation):
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password_bytes, salt)
 
-    # Insert user into users table
+    # Insert new user into the users table
     sqliteConnection = sqlite3.connect('expense_tracker.db')
     try:
         cursor = sqliteConnection.cursor()

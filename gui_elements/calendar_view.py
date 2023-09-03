@@ -1,23 +1,23 @@
-from PyQt6.QtWidgets import (QCalendarWidget,
-                            QHBoxLayout, QVBoxLayout, QWidget, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, 
-                            QLabel, QAbstractItemView)
-from PyQt6.QtCore import Qt, QDate, QEvent
+from PyQt6.QtWidgets import (QCalendarWidget, QHBoxLayout, QVBoxLayout, 
+                            QWidget, QTableWidget, QTableWidgetItem,
+                            QHeaderView, QLabel, QAbstractItemView)
+from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QFont
 
-# Import data insertion function
+# Import functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import get_last_day_of_current_month, get_sum_expenses_by_date, get_list_expenses_by_date, get_last_start_date_of_oldest_record
 
 
+# Allow date cell to store sum of expenses made on that day
 class CustomCalendarCell(QTableWidgetItem):
     def __init__(self, sum_expenses):
         super().__init__(str(sum_expenses))
         self.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlags(Qt.ItemFlag.ItemIsEnabled)
 
-
+# Main calendar window
 class CalendarView(QWidget):
     def __init__(self, user_id):
         super().__init__()
@@ -32,21 +32,26 @@ class CalendarView(QWidget):
         self.layout.setSpacing(20)
         self.setLayout(self.layout)
 
-        # Adding calendar
+        # Add calendar 
         self.calendar = CustomCalendarWidget(self.user_id) 
         self.calendar.selectionChanged.connect(self.calendar_date_changed)
+
+        # Initialize the table to display list of expenses on a date cell click
         self.table = None
 
         self.layout.addWidget(self.calendar)
 
 
 
-    # Create and display table of daily expenses for the day clicked
+    # Create and display table of the daily expenses for the day clicked
     def calendar_date_changed(self):
         date_selected = self.calendar.selectedDate().toPyDate()
+
+        # Clear previously created tables
         if self.table:
             self.table.deleteLater()
 
+        # Make a new table with the selected date
         self.table = DateExpenseTable(self.user_id, date_selected)
         self.resize(900, 450)
         self.layout.addWidget(self.table)
@@ -60,10 +65,10 @@ class CustomCalendarWidget(QCalendarWidget):
         # Remove vertical header with yearly week count
         self.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
 
-        # Last day of current month
+        # Get last day of the current month
         max_date = get_last_day_of_current_month()
 
-        # Get first day of the month of the earliest record in DB
+        # Get first day of the month of the earliest record in the database
         min_date = get_last_start_date_of_oldest_record(self.user_id)[1]
 
         # Set min and max days to display in the calendar
@@ -71,7 +76,7 @@ class CustomCalendarWidget(QCalendarWidget):
         self.setMinimumDate(QDate(min_date.year, min_date.month, min_date.day))
 
 
-    # Write sum of the expenses for a day 
+    # Write sum of the expenses for a day
     def paintCell(self, painter, rect, date):
         super().paintCell(painter, rect, date)
 
@@ -148,7 +153,7 @@ class DateExpenseTable(QWidget):
         # Extract data to populate the table 
         expenses_of_the_day = get_list_expenses_by_date(self.user_id, self.date)
         
-        # If there is not expense data for this date
+        # If there is no expense information for this date
         if not expenses_of_the_day:
             table.setRowCount(1)
             table.setSpan(0, 0, 1, 3)
