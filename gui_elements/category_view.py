@@ -2,8 +2,8 @@
 from PyQt6.QtWidgets import (QMainWindow, QTableWidget, 
                             QTableWidgetItem, QPushButton, QWidget, 
                             QVBoxLayout, QHeaderView, QMessageBox)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QBrush, QColor
+from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtGui import QFont, QBrush, QColor, QCursor
 
 
 # Import functions interacting with a database
@@ -60,7 +60,10 @@ class DisplayCategoryList(QMainWindow):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Type", "Amount ($)", "Edit"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+
         header = self.table_widget.horizontalHeader()
+
+        # Allow sorting by column header clicks
         header.setSectionsClickable(True)
         header.sectionClicked.connect(self.header_clicked)
 
@@ -91,6 +94,7 @@ class DisplayCategoryList(QMainWindow):
         self.setCentralWidget(outer_frame)
         self.show()
     
+
     # Sort rows in the table according to the clicked column header
     def header_clicked(self, logical_index):
         # Sort by name
@@ -106,7 +110,6 @@ class DisplayCategoryList(QMainWindow):
         if logical_index == 3:
             self.current_category_expenses_list = sorted(self.current_category_expenses_list, key=lambda x: x[3], reverse=True)
         
-        self.table_widget.clearContents()
         self.fill_table_content()
     
 
@@ -141,7 +144,6 @@ class DisplayCategoryList(QMainWindow):
             if label_item:
                 # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
                 label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-
 
 
     def close_category_table(self):
@@ -201,6 +203,5 @@ class DisplayCategoryList(QMainWindow):
                 self.main_window.current_month_donut_chart.refresh_donut_chart()
 
                 self.table_widget.update()
-
 
 

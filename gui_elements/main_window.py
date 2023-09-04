@@ -2,11 +2,10 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QBrush, QColor, QPainter, QFontMetrics
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, 
                             QHBoxLayout, QVBoxLayout, QFormLayout, QDialog,
-                            QDialogButtonBox, QSpinBox, QFileDialog, QMessageBox,
-                            QTableWidget, QTableWidgetItem)
+                            QDialogButtonBox, QSpinBox, QFileDialog, QMessageBox)
 
 from PyQt6.QtCharts import (QBarCategoryAxis, QStackedBarSeries, QBarSet, QChart, 
-                            QChartView, QValueAxis, QPieSeries, QPieSlice)
+                            QChartView, QValueAxis, QPieSeries)
 
 # GUI elements
 from gui_elements.view_balance import ViewBalanceWindow

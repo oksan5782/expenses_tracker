@@ -42,7 +42,6 @@ class CalendarView(QWidget):
         self.layout.addWidget(self.calendar)
 
 
-
     # Create and display table of the daily expenses for the day clicked
     def calendar_date_changed(self):
         date_selected = self.calendar.selectedDate().toPyDate()
@@ -118,7 +117,7 @@ class DateExpenseTable(QWidget):
 
     def create_table(self):
 
-        table = QTableWidget(self) 
+        self.table = QTableWidget(self) 
 
         stylesheet = """
         QTableWidget {
@@ -141,36 +140,63 @@ class DateExpenseTable(QWidget):
             color: #2F4F4F;
         }"""
 
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        table.setStyleSheet(stylesheet)
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)"])
-        table.verticalHeader().setDefaultSectionSize(50)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.setStyleSheet(stylesheet)
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)"])
+        self.table.verticalHeader().setDefaultSectionSize(50)
+
+        # Allow sorting by column header clicks
+        header = self.table.horizontalHeader()
+        header.setSectionsClickable(True)
+        header.sectionClicked.connect(self.header_clicked)
 
         # Make table cells non-editable
-        table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         # Extract data to populate the table 
-        expenses_of_the_day = get_list_expenses_by_date(self.user_id, self.date)
+        self.expenses_of_the_day = get_list_expenses_by_date(self.user_id, self.date)
         
         # If there is no expense information for this date
-        if not expenses_of_the_day:
-            table.setRowCount(1)
-            table.setSpan(0, 0, 1, 3)
-            table.setItem(0, 0, QTableWidgetItem("No Data For This Date"))
+        if not self.expenses_of_the_day:
+            self.table.setRowCount(1)
+            self.table.setSpan(0, 0, 1, 3)
+            self.table.setItem(0, 0, QTableWidgetItem("No Data For This Date"))
 
         else:
-            for i, expense_record in enumerate(expenses_of_the_day):
-                # Name, category, amount columns 
-                name = expense_record[0]
-                category = expense_record[1]
-                amount = expense_record[2]
+            self.fill_table_content()
 
-                # Insert extracted data into a row
-                table.insertRow(i)
-                table.setItem(i, 0, QTableWidgetItem(name))
-                table.setItem(i, 1, QTableWidgetItem(category))
-                table.setItem(i, 2, QTableWidgetItem(str(amount)))
+        return self.table
+        
+    def fill_table_content(self):
+        self.table.clearContents()
 
-        return table
+        # Set the size of the table
+        self.table.setRowCount(len(self.expenses_of_the_day))
+
+        for i, expense_record in enumerate(self.expenses_of_the_day):
+            # Name, category, amount columns 
+            name = expense_record[0]
+            category = expense_record[1]
+            amount = expense_record[2]
+
+            # Insert extracted data into a row
+            self.table.setItem(i, 0, QTableWidgetItem(name))
+            self.table.setItem(i, 1, QTableWidgetItem(category))
+            self.table.setItem(i, 2, QTableWidgetItem(str(amount)))
+
+
+    # Sort rows in the table according to the clicked column header
+    def header_clicked(self, logical_index):
+        # Sort by name
+        if logical_index == 0:
+            self.expenses_of_the_day = sorted(self.expenses_of_the_day, key=lambda x: x[0])
+        # Sort by category
+        if logical_index == 1:
+            self.expenses_of_the_day = sorted(self.expenses_of_the_day, key=lambda x: x[1])
+                # Sort by amount
+        if logical_index == 2:
+            self.expenses_of_the_day = sorted(self.expenses_of_the_day, key=lambda x: x[2], reverse=True)
+        
+        self.fill_table_content()
 

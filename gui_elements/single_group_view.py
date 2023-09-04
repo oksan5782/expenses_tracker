@@ -57,54 +57,21 @@ class DisplayGroupList(QMainWindow):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Exclude"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        # Allow sorting by column header clicks
+        header = self.table_widget.horizontalHeader()
+        header.setSectionsClickable(True)
+        header.sectionClicked.connect(self.header_clicked)
+
         # Get group data from the database for current user
-        group_expenses_list = get_group_expenses(self.user_id, self.group_name)
+        self.group_expenses_list = get_group_expenses(self.user_id, self.group_name)
 
          # Check for null
-        if not group_expenses_list:
+        if not self.group_expenses_list:
             self.table_widget.setRowCount(1)
             self.table_widget.setSpan(0, 0, 1, 7)
             self.table_widget.setItem(0, 0, QTableWidgetItem("No Data For This Group"))
         else:
-            for i, expense_record in enumerate(group_expenses_list):
-                name = expense_record[0]
-                category = expense_record[1]
-                date = expense_record[2]
-                transaction_type = expense_record[3]
-                amount = expense_record[4]
-
-                # Insert extracted data into the table row 
-                self.table_widget.insertRow(i)
-                self.table_widget.setItem(i, 0, QTableWidgetItem(name))
-                self.table_widget.setItem(i, 1, QTableWidgetItem(category))
-                self.table_widget.setItem(i, 2, QTableWidgetItem(date))
-                self.table_widget.setItem(i, 3, QTableWidgetItem(transaction_type))
-                self.table_widget.setItem(i, 4, QTableWidgetItem(str(amount)))
-
-                # Button to edit the record
-                edit_this_group_record = QPushButton("Edit", self)
-                edit_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
-                edit_this_group_record.setCheckable(True)
-                edit_this_group_record.setStyleSheet("background-color: #D9BFBF; border: none; border-radius: 5; padding: 5 0" )
-                edit_this_group_record.setFont(QFont("Futura", 16))
-                edit_this_group_record.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
-
-                # Button to remove record from the group
-                remove_this_group_record = QPushButton("Delete", self)
-                remove_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
-                remove_this_group_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
-                remove_this_group_record.setFont(QFont("Futura", 16))
-                remove_this_group_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
-
-                self.table_widget.setCellWidget(i, 5, edit_this_group_record)
-                self.table_widget.setCellWidget(i, 6, remove_this_group_record)
-
-                # Set all labels as non-editable initially
-                for column in range(5):
-                    label_item = self.table_widget.item(i, column)
-                    if label_item:
-                        # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
-                        label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.fill_table_content()
 
         outer_frame_layout.addWidget(self.table_widget)
 
@@ -122,6 +89,71 @@ class DisplayGroupList(QMainWindow):
         self.setCentralWidget(outer_frame)
 
         self.show()
+        
+
+    def fill_table_content(self):
+        self.table_widget.clearContents()
+        self.table_widget.setRowCount(len(self.group_expenses_list))
+
+        for i, expense_record in enumerate(self.group_expenses_list):
+            name = expense_record[0]
+            category = expense_record[1]
+            date = expense_record[2]
+            transaction_type = expense_record[3]
+            amount = expense_record[4]
+
+            # Insert extracted data into the table row 
+            self.table_widget.setItem(i, 0, QTableWidgetItem(name))
+            self.table_widget.setItem(i, 1, QTableWidgetItem(category))
+            self.table_widget.setItem(i, 2, QTableWidgetItem(date))
+            self.table_widget.setItem(i, 3, QTableWidgetItem(transaction_type))
+            self.table_widget.setItem(i, 4, QTableWidgetItem(str(amount)))
+
+            # Button to edit the record
+            edit_this_group_record = QPushButton("Edit", self)
+            edit_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
+            edit_this_group_record.setCheckable(True)
+            edit_this_group_record.setStyleSheet("background-color: #D9BFBF; border: none; border-radius: 5; padding: 5 0" )
+            edit_this_group_record.setFont(QFont("Futura", 16))
+            edit_this_group_record.clicked.connect(lambda checked, row=i: self.edit_this_expense_record(row, checked))
+
+            # Button to remove record from the group
+            remove_this_group_record = QPushButton("Delete", self)
+            remove_this_group_record.setCursor(Qt.CursorShape.PointingHandCursor)
+            remove_this_group_record.setStyleSheet("background-color: #DBC3A3; border: none; border-radius: 5; padding: 5 0" )
+            remove_this_group_record.setFont(QFont("Futura", 16))
+            remove_this_group_record.clicked.connect(lambda checked, row=i: self.remove_this_expense_record(row))
+
+            self.table_widget.setCellWidget(i, 5, edit_this_group_record)
+            self.table_widget.setCellWidget(i, 6, remove_this_group_record)
+
+            # Set all labels as non-editable initially
+            for column in range(5):
+                label_item = self.table_widget.item(i, column)
+                if label_item:
+                    # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
+                    label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+
+    # Sort rows in the table according to the clicked column header
+    def header_clicked(self, logical_index):
+        # Sort by name
+        if logical_index == 0:
+            self.group_expenses_list = sorted(self.group_expenses_list, key=lambda x: x[0])
+        # Sort by category
+        if logical_index == 1:
+            self.group_expenses_list = sorted(self.group_expenses_list, key=lambda x: x[1])
+        # Sort by date
+        if logical_index == 2:
+            self.group_expenses_list = sorted(self.group_expenses_list, key=lambda x: x[2], reverse=True)
+        # Sort by type
+        if logical_index == 3:
+            self.group_expenses_list = sorted(self.group_expenses_list, key=lambda x: x[3])
+        # Sort by amount
+        if logical_index == 4:
+            self.group_expenses_list = sorted(self.group_expenses_list, key=lambda x: x[4], reverse=True)
+        
+        self.fill_table_content()
     
 
     # Close window button

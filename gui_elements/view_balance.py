@@ -64,23 +64,23 @@ class ViewBalanceWindow(QWidget):
         left_layout.addWidget(self.year_table)
 
         # Button to view list of expenses
-        self.expense_list = QPushButton("View Expenses List")
-        self.expense_list.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.expense_list.setFixedWidth(240)
-        self.expense_list.setStyleSheet("background-color: #87cefa; border: none; border-radius: 5; padding: 5 0" )
-        self.expense_list.setFont(QFont("Futura", 16))
-        self.expense_list.clicked.connect(self.view_expense_list)
+        self.expense_list_button = QPushButton("View Expenses List")
+        self.expense_list_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.expense_list_button.setFixedWidth(240)
+        self.expense_list_button.setStyleSheet("background-color: #87cefa; border: none; border-radius: 5; padding: 5 0" )
+        self.expense_list_button.setFont(QFont("Futura", 16))
+        self.expense_list_button.clicked.connect(self.view_expense_list)
 
-        left_layout.addWidget(self.expense_list, alignment=Qt.AlignmentFlag.AlignCenter)
+        left_layout.addWidget(self.expense_list_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Button to view the list of income records
-        self.income_list = QPushButton("View Income List")
-        self.income_list.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.income_list.setFixedWidth(240)
-        self.income_list.setStyleSheet("background-color: #a3dcce; border: none; border-radius: 5; padding: 5 0" )
-        self.income_list.setFont(QFont("Futura", 16))
-        self.income_list.clicked.connect(self.view_income_list)
-        left_layout.addWidget(self.income_list, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.income_list_button = QPushButton("View Income List")
+        self.income_list_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.income_list_button.setFixedWidth(240)
+        self.income_list_button.setStyleSheet("background-color: #a3dcce; border: none; border-radius: 5; padding: 5 0" )
+        self.income_list_button.setFont(QFont("Futura", 16))
+        self.income_list_button.clicked.connect(self.view_income_list)
+        left_layout.addWidget(self.income_list_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.content_layout.addLayout(left_layout)
         
@@ -245,6 +245,11 @@ class ExpenseListWindow(QWidget):
         self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        # Allow sorting by column header clicks
+        header = self.table_widget.horizontalHeader()
+        header.setSectionsClickable(True)
+        header.sectionClicked.connect(self.header_clicked)
+
         # Get records from the database
         self.expenses_list = get_user_expenses(self.user_id)
 
@@ -273,6 +278,10 @@ class ExpenseListWindow(QWidget):
 
 
     def fill_table_content(self):
+
+        self.table_widget.clearContents()
+        self.table_widget.setRowCount(len(self.expenses_list))
+
         for i, expense_record in enumerate(self.expenses_list):
             name = expense_record[0]
             category = expense_record[1]
@@ -281,7 +290,6 @@ class ExpenseListWindow(QWidget):
             amount = expense_record[4]
 
             # Insert extracted data into the table row 
-            self.table_widget.insertRow(i)
             self.table_widget.setItem(i, 0, QTableWidgetItem(name))
             self.table_widget.setItem(i, 1, QTableWidgetItem(category))
             self.table_widget.setItem(i, 2, QTableWidgetItem(date))
@@ -312,6 +320,27 @@ class ExpenseListWindow(QWidget):
                 if label_item:
                     # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
                     label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+
+    # Sort rows in the table according to the clicked column header
+    def header_clicked(self, logical_index):
+        # Sort by name
+        if logical_index == 0:
+            self.expenses_list = sorted(self.expenses_list, key=lambda x: x[0])
+        # Sort by category
+        if logical_index == 1:
+            self.expenses_list = sorted(self.expenses_list, key=lambda x: x[1])
+        # Sort by date
+        if logical_index == 2:
+            self.expenses_list = sorted(self.expenses_list, key=lambda x: x[2], reverse=True)
+        # Sort by type
+        if logical_index == 3:
+            self.expenses_list = sorted(self.expenses_list, key=lambda x: x[3])
+        # Sort by amount
+        if logical_index == 4:
+            self.expenses_list = sorted(self.expenses_list, key=lambda x: x[4], reverse=True)
+        
+        self.fill_table_content()
 
 
     # Remove current record from the database
@@ -416,6 +445,11 @@ class IncomeListWindow(QWidget):
         self.table_widget.setHorizontalHeaderLabels(["Date", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        # Allow sorting by column header clicks
+        header = self.table_widget.horizontalHeader()
+        header.setSectionsClickable(True)
+        header.sectionClicked.connect(self.header_clicked)
+
         # Get records from the database
         self.incomes_list = get_user_income(self.user_id)
 
@@ -444,12 +478,15 @@ class IncomeListWindow(QWidget):
 
 
     def fill_table_content(self):
+
+        self.table_widget.clearContents()
+        self.table_widget.setRowCount(len(self.incomes_list))
+
         for i, income_record in enumerate(self.incomes_list):
             date = income_record[0]
             amount = income_record[1]
 
             # Insert extracted data into the table row 
-            self.table_widget.insertRow(i)
             self.table_widget.setItem(i, 0, QTableWidgetItem(date))
             self.table_widget.setItem(i, 1, QTableWidgetItem(str(amount)))
 
@@ -477,6 +514,18 @@ class IncomeListWindow(QWidget):
                 if label_item:
                     # The flags() method returns the current flags of the item, and we use a bitwise AND operation (&) with the complement (NOT) of the Qt.ItemFlag.ItemIsEditable flag to remove the Qt.ItemIsEditable flag from the item's flags.
                     label_item.setFlags(label_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+
+   # Sort rows in the table according to the clicked column header
+    def header_clicked(self, logical_index):
+        # Sort by date
+        if logical_index == 0:
+            self.incomes_list = sorted(self.incomes_list, key=lambda x: x[0], reverse=True)
+        # Sort by amount
+        if logical_index == 1:
+            self.incomes_list = sorted(self.incomes_list, key=lambda x: x[1], reverse=True)
+        
+        self.fill_table_content()
 
 
     # Remove current record from the database
