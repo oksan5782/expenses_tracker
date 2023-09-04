@@ -488,11 +488,11 @@ class StackedBarChart(QWidget):
         # Use Spin Box to set min and max values
         min_spinbox = QSpinBox()
         min_spinbox.setRange(0, 5000)
-        min_spinbox.setValue(self.axis_y.min())
+        min_spinbox.setValue(int(self.axis_y.min()))
 
         max_spinbox = QSpinBox()
         max_spinbox.setRange(0, 5000)
-        max_spinbox.setValue(self.axis_y.max())
+        max_spinbox.setValue(int(self.axis_y.max()))
 
         dialog = QDialog(self)
         dialog.setWindowTitle("Set Y-axis Range")
