@@ -171,7 +171,6 @@ class ViewBalanceWindow(QWidget):
         else:
             # Get expense dictionaries
             monthly_expense_summaries = get_monthly_expenses_summary(self.user_id, self.oldest_record[1], self.latest_date)
-            
             # Get income dictionaries
             monthly_income_summaries = get_monthly_income_summary(self.user_id, self.oldest_record[1], self.latest_date)
 

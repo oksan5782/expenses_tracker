@@ -516,19 +516,27 @@ def get_monthly_expenses_summary(user_id, start_date, end_date):
         # Create a defaultdict to store expenses by month
         expenses_by_month = defaultdict(float)
 
+        # Create a set to store unique months
+        unique_months = set()
+
+        # Iterate through expenses_sum and update the unique_months set
+        for month, _ in expenses_sum:
+            unique_months.add(month)
+
+        # Initialize missing months with zero expenses
         current_date = start_date
         while current_date <= end_date:
             year_month = current_date.strftime("%Y-%m")
-            expenses_by_month[year_month] = 0.0
+            if year_month not in unique_months:
+                expenses_sum.append((year_month, 0.0))
             current_date += timedelta(days=30)  # Assuming roughly 30 days per month
 
         # Iterate through expenses_sum and update the expenses_by_month dictionary
         for month, total_expenses in expenses_sum:
-            date = datetime.strptime(month, "%Y-%m")
-            if start_date <= date <= end_date:
-                expenses_by_month[month] += total_expenses
+            expenses_by_month[month] += total_expenses
 
-        expenses_dict_by_month = dict(reversed(expenses_by_month.items()))
+        expenses_dict_by_month = dict(sorted(expenses_by_month.items(), reverse=True))
+
         return expenses_dict_by_month
 
     except sqlite3.Error as error:
@@ -558,20 +566,27 @@ def get_monthly_income_summary(user_id, start_date, end_date):
         # Create a defaultdict to store income sums by month
         income_by_month = defaultdict(float)
 
+        # Create a set to store unique months
+        unique_months = set()
+
+        # Iterate through income_sum and update the unique_months set
+        for month, _ in income_by_month:
+            unique_months.add(month)
+
+        # Initialize missing months with zero income
         current_date = start_date
         while current_date <= end_date:
             year_month = current_date.strftime("%Y-%m")
-            income_by_month[year_month] = 0.0
+            if year_month not in unique_months:
+                income_sum.append((year_month, 0.0))
             current_date += timedelta(days=30)  # Assuming roughly 30 days per month
-    
 
-        # Iterate through expenses_sum and update the income_by_month dictionary
+        # Iterate through income_sum and update the income_by_month dictionary
         for month, total_income in income_sum:
-            date = datetime.strptime(month, "%Y-%m")
-            if start_date <= date <= end_date:
-                income_by_month[month] += total_income
+            income_by_month[month] += total_income
+
+        income_dict_by_month = dict(sorted(income_by_month.items(), reverse=True))
         
-        income_dict_by_month = dict(reversed(income_by_month.items()))
         return income_dict_by_month
 
     except sqlite3.Error as error:
@@ -579,6 +594,7 @@ def get_monthly_income_summary(user_id, start_date, end_date):
     finally:
         if sqliteConnection:
             sqliteConnection.close()
+
 
 # Add expense record into the database
 def add_expense_into_db(user_id, type, name, date, category, amount):
