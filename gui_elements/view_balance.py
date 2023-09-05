@@ -239,16 +239,17 @@ class ExpenseListWindow(QWidget):
 
         self.table_widget = QTableWidget(self)
 
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(self.table_style)
         self.table_widget.setColumnCount(7)
         self.table_widget.setHorizontalHeaderLabels(["Name", "Category", "Date", "Type", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        # Set horizontal headder to change mouse pointer on hover
+        custom_header = HoverHeaderView(Qt.Orientation.Horizontal)
+        self.table_widget.setHorizontalHeader(custom_header)
+
         # Allow sorting by column header clicks
-        header = self.table_widget.horizontalHeader()
-        header.setSectionsClickable(True)
-        header.sectionClicked.connect(self.header_clicked)
+        custom_header.sectionClicked.connect(self.header_clicked)
 
         # Get records from the database
         self.expenses_list = get_user_expenses(self.user_id)
@@ -439,16 +440,17 @@ class IncomeListWindow(QWidget):
 
         self.table_widget = QTableWidget(self)
 
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(self.table_style)
         self.table_widget.setColumnCount(4)
         self.table_widget.setHorizontalHeaderLabels(["Date", "Amount ($)", "Edit", "Delete"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
+        # Set horizontal headder to change mouse pointer on hover
+        custom_header = HoverHeaderView(Qt.Orientation.Horizontal)
+        self.table_widget.setHorizontalHeader(custom_header)
+
         # Allow sorting by column header clicks
-        header = self.table_widget.horizontalHeader()
-        header.setSectionsClickable(True)
-        header.sectionClicked.connect(self.header_clicked)
+        custom_header.sectionClicked.connect(self.header_clicked)
 
         # Get records from the database
         self.incomes_list = get_user_income(self.user_id)
@@ -594,3 +596,25 @@ class IncomeListWindow(QWidget):
 
     def close_income_table(self):
         self.hide()
+
+
+# Custom header class to enable mouse cursor change
+class HoverHeaderView(QHeaderView):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self.setSectionsClickable(True)
+        self.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    # Define mouse over cursor change for all the columns besides the last one
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self.orientation() == Qt.Orientation.Horizontal:
+            for logical_index in range(self.count() - 2):
+                if (
+                    self.sectionPosition(logical_index) <= event.pos().x() < 
+                    self.sectionPosition(logical_index + 1)
+                ):
+                    self.setCursor(Qt.CursorShape.PointingHandCursor)
+                    return
+        self.setCursor(Qt.CursorShape.ArrowCursor)

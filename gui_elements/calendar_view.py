@@ -140,16 +140,17 @@ class DateExpenseTable(QWidget):
             color: #2F4F4F;
         }"""
 
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setStyleSheet(stylesheet)
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Name", "Date", "Amount ($)"])
         self.table.verticalHeader().setDefaultSectionSize(50)
 
+        # Set horizontal headder to change mouse pointer on hover
+        custom_header = HoverHeaderView(Qt.Orientation.Horizontal)
+        self.table.setHorizontalHeader(custom_header)
+
         # Allow sorting by column header clicks
-        header = self.table.horizontalHeader()
-        header.setSectionsClickable(True)
-        header.sectionClicked.connect(self.header_clicked)
+        custom_header.sectionClicked.connect(self.header_clicked)
 
         # Make table cells non-editable
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -199,4 +200,28 @@ class DateExpenseTable(QWidget):
             self.expenses_of_the_day = sorted(self.expenses_of_the_day, key=lambda x: x[2], reverse=True)
         
         self.fill_table_content()
+
+
+# Custom header class to enable mouse cursor change
+class HoverHeaderView(QHeaderView):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self.setSectionsClickable(True)
+        self.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    # Define cursor change for all the column headers
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+
+        if self.orientation() == Qt.Orientation.Horizontal:
+            for logical_index in range(self.count()):
+                if (
+                    self.sectionPosition(logical_index) <= event.pos().x() <
+                    self.sectionPosition(logical_index + 1)
+                ):
+                    self.setCursor(Qt.CursorShape.PointingHandCursor)
+                    return
+    
+        self.setCursor(Qt.CursorShape.PointingHandCursor if self.orientation() == Qt.Orientation.Horizontal else Qt.CursorShape.ArrowCursor)
 

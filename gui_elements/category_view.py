@@ -1,16 +1,15 @@
 
 from PyQt6.QtWidgets import (QMainWindow, QTableWidget, 
-                            QTableWidgetItem, QPushButton, QWidget, 
+                            QTableWidgetItem, QPushButton, QWidget,
                             QVBoxLayout, QHeaderView, QMessageBox)
 from PyQt6.QtCore import Qt, QEvent
-from PyQt6.QtGui import QFont, QBrush, QColor, QCursor
+from PyQt6.QtGui import QFont, QBrush, QColor
 
 
 # Import functions interacting with a database
 import sys
 sys.path.append('../helpers')
 from helpers import get_expenses_by_category, edit_record
-
 
 class DisplayCategoryList(QMainWindow):
     def __init__(self, user_id, name, main_window):
@@ -52,20 +51,20 @@ class DisplayCategoryList(QMainWindow):
             padding: 5px;
             background-color: #E8EFFC;
             color: #2F4F4F;
+            
         }"""
 
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table_widget.setStyleSheet(stylesheet)
         self.table_widget.setColumnCount(5)
         self.table_widget.setHorizontalHeaderLabels(["Name", "Date", "Type", "Amount ($)", "Edit"])
         self.table_widget.verticalHeader().setDefaultSectionSize(50)
 
-
-        header = self.table_widget.horizontalHeader()
+        # Set horizontal headder to change mouse pointer on hover
+        custom_header = HoverHeaderView(Qt.Orientation.Horizontal)
+        self.table_widget.setHorizontalHeader(custom_header)
 
         # Allow sorting by column header clicks
-        header.setSectionsClickable(True)
-        header.sectionClicked.connect(self.header_clicked)
+        custom_header.sectionClicked.connect(self.header_clicked)
 
         # Extract data for the selected category from the database
         self.current_category_expenses_list = get_expenses_by_category(self.user_id, self.category_title)
@@ -205,3 +204,23 @@ class DisplayCategoryList(QMainWindow):
                 self.table_widget.update()
 
 
+# Custom header class to enable mouse cursor change
+class HoverHeaderView(QHeaderView):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self.setSectionsClickable(True)
+        self.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    # Define mouse over cursor change for all the columns besides the last one
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self.orientation() == Qt.Orientation.Horizontal:
+            for logical_index in range(self.count()):
+                if (
+                    self.sectionPosition(logical_index) <= event.pos().x() < 
+                    self.sectionPosition(logical_index + 1)
+                ):
+                    self.setCursor(Qt.CursorShape.PointingHandCursor)
+                    return
+        self.setCursor(Qt.CursorShape.ArrowCursor)
