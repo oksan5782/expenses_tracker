@@ -356,10 +356,9 @@ class CustomCalendar(QCalendarWidget):
         # Connect selection with clicking
         self.clicked.connect(self.select_day_range)
 
+
     # Select day range
     def select_day_range(self, date_value):
-        self.highlight_range(QTextCharFormat())   
-
         # Adjust selection to pressed dates
         if self.from_date == date_value:
             self.from_date = None

@@ -33,7 +33,7 @@ class MainScreen(QWidget):
         self.setWindowTitle("Expences Tracker")
 
         # Set size of the main window - position x, position y, width, height
-        self.setGeometry(100, 100, 1200, 750)
+        self.setGeometry(100, 100, 1240, 750)
         self.set_ui()
 
 
