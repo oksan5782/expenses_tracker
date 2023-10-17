@@ -65,7 +65,7 @@ These dependencies could be installed using pip:
 
 ## Usage
 
-- Upload your expense data from Discover or Chase in CSV format or input expence record manually
+- Upload your expense data from Discover or Chase in CSV format or input expense record manually
 - The application will automatically categorize and organize your expenses.
 - Explore your financial data using the intuitive interface, switch between different views, check out graphs and analyze your spending habits.
 - Add, edit, or delete expense items manually as needed.
