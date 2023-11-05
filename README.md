@@ -3,7 +3,7 @@
 
 ## Overview
 
-The Expense Tracker Application is a user-friendly desktop application designed to organize and track expenses. It provides a streamlined interface for managing financial data, reading and categorizing expenses from various sources, and gaining insights into user's spending habits.
+The Expense Tracker Application is a user-friendly desktop application created using PyQT6 and designed to organize and track expenses. It provides a streamlined interface for managing financial data, reading and categorizing expenses from various sources, and gaining insights into user's spending habits.
 
 
 ## Features
