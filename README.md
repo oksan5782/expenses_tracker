@@ -73,19 +73,24 @@ These dependencies could be installed using pip:
 ## Screenshots
 
 Login and Registration Forms
-<img width="1138" alt="Login and Registration Forms" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/ddc84d51-b514-421c-8b60-cd5961403c4d">
+<img width="1138" alt="Screenshot 1" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/bd6d2814-7ade-4d68-b531-2d71253889b7">
+
 
 Main Window View
-<img width="1246" alt="Main Window" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/8300966a-1109-4953-8a94-f0cd3a03c7b5">
+<img width="1246" alt="Screenshot 2" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/9a6532ba-946d-4b67-ac2a-d452119b9920">
+
 
 Manual Insertion of the Expense/Income Record
-<img width="1043" alt="Add Expense/Income" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/d2b7ac0c-7077-4cbd-b51f-1c68254cc747">
+<img width="1043" alt="Screenshot 3" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/0ca83932-446b-48b8-8470-fd70128f8f42">
+
 
 Calendar Date View
-<img width="1197" alt="Calendar" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/bef2f0d7-9d10-47b0-a28b-e853b3f913aa">
+<img width="1197" alt="Screenshot 4" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/380e43c1-bb19-44f6-99c2-0b888350f15a">
+
 
 One of the Categories View
-<img width="1276" alt="Category View" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/8b070343-f60c-4cfe-8a58-4a126baa54a1">
+<img width="1276" alt="Screenshot 5" src="https://github.com/oksan5782/expenses_tracker/assets/57775793/a221716c-c3e3-4e4e-8f52-930ae5a36552">
+
 
 ## License
 
